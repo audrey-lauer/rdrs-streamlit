@@ -40,7 +40,7 @@ def make_timeserie(year, clicked_id, clicked_name):
     #if clicked_id == '1060844':
     # Dates
     date_debut = year+'-01-01'
-    date_fin   = year+'-07-01'
+    date_fin   = year+'-12-31'
 
     # Observations
     df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
