@@ -24,7 +24,7 @@ st.write('Hourly stations')
 
 year = st.radio('Pick the year',['2017','2018'])
 
-df_station_info = pd.read_csv('/home/aul001/reanalyse/obs/station-hourly/station-info.obs', delim_whitespace=True, skiprows=2)
+df_station_info = pd.read_csv('data/station-info.obs', delim_whitespace=True, skiprows=2)
 main_map = make_map(df_station_info, 'ELEV')
 
 col1, col2, col3 = st.columns([0.7,0.3,1])

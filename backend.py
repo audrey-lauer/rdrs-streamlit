@@ -43,7 +43,7 @@ def make_timeserie(year, clicked_id, clicked_name):
     date_fin   = year+'-07-01'
 
     # Observations
-    df_station = pd.read_pickle("/home/aul001/dd/reanalyse/obs/pickle-data/"+clicked_id+"-station.pkl")
+    df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
 
     def func_station(val):
         minimum_val = df_station[val['date_from'] : val['date_to']]['TT'].min()
@@ -59,7 +59,7 @@ def make_timeserie(year, clicked_id, clicked_name):
     df_station = pd.concat(list(df_temp.apply(func_station, axis=1)))
 
     # RDRS
-    df_rdrs = pd.read_pickle("/home/aul001/dd/reanalyse/obs/pickle-data/"+clicked_id+"-RDRS.pkl")
+    df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
     elevation = df_rdrs['elev'].loc[0]
 
     def func_rdrs(val):
