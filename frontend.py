@@ -26,8 +26,6 @@ def make_map(df_station_info, field_to_color_by):
     colormap = linear.RdYlBu_08.scale(0,2000)
     colormap.add_to(main_map)
 
-    colormap.add_to(main_map)
-
     for i in df_station_info.index:
         lat  = df_station_info['LAT'].loc[i]
         lon  = df_station_info['LON'].loc[i]
@@ -124,9 +122,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
 
 st.write('Hourly stations')
 
+dataset = st.selectbox('Dataset',['ECCC network','BC archive'])
+
 year = st.radio('Pick the year',['2017','2018'])
 
-df_station_info = pd.read_csv('data/station-info.obs', delim_whitespace=True, skiprows=2)
+if dataset == 'ECCC network':
+    df_station_info = pd.read_csv('data/station-info-eccc.obs', delim_whitespace=True, skiprows=2)
+elif dataset == 'BC archive':
+    df_station_info = pd.read_csv('data/station-info-canswe.obs', delim_whitespace=True, skiprows=2)
 main_map = make_map(df_station_info, 'ELEV')
 
 col1, col2, col3 = st.columns([0.7,0.3,1])
