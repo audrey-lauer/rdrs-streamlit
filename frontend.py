@@ -53,6 +53,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
     # Observations
     df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
 
+    df_station_sd = pd.DataFrame()
+    if 'SD' in df_station.columns:
+        df_station_sd['date'] = df_station['date']
+        df_station_sd['SD']   = df_station['SD']
+        mask = (df_station_sd['date'] > date_debut) & (df_station_sd['date'] <= date_fin)
+        df_station_sd = df_station_sd.loc[mask]
+
     def func_station(val):
         minimum_val = df_station[val['date_from'] : val['date_to']]['TT'].min()
         maximum_val = df_station[val['date_from'] : val['date_to']]['TT'].max()
@@ -85,6 +92,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
     elevation = df_rdrs['elev'].loc[0]
 
+    df_rdrs_sd = pd.DataFrame()
+    if 'SD' in df_rdrs.columns:
+        df_rdrs_sd['date'] = df_rdrs['date']
+        df_rdrs_sd['SD']   = df_rdrs['SD']
+        mask = (df_rdrs_sd['date'] > date_debut) & (df_rdrs_sd['date'] <= date_fin)
+        df_rdrs_sd = df_rdrs_sd.loc[mask]
+    print(df_rdrs_sd)
+
     def func_rdrs(val):
         minimum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].min()
         maximum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].max()
@@ -106,13 +121,21 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
     temp_rdrs_max = df_rdrs['Tmax']
     biais = temp_rdrs_max - temp_station_max
 
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.plot(date, temp_station_max)
-    ax.plot(date, temp_rdrs_max)
+    fig, ax1 = plt.subplots(figsize=(10,5))
 
-    plt.ylabel('Temperature [C]')
-    ax.set_ylim([-35,35])
-    ax.grid(True)
+    ax1.plot(date, temp_station_max)
+    ax1.plot(date, temp_rdrs_max)
+    ax1.set_ylabel('Temperature [C]')
+    ax1.set_ylim([-35,35])
+
+    if not df_rdrs_sd.empty:
+        ax2 = ax1.twinx()
+        ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--')
+        ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--')
+        ax2.set_ylabel('Snow depth [cm]')
+        ax2.set_ylim([-5,500])
+
+    ax1.grid(True)
 
     plt.legend(['obs','RDRSv2.1'])
     plt.title('Tmax at '+clicked_name)
