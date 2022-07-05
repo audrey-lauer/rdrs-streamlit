@@ -24,7 +24,7 @@ st.set_page_config(layout="wide")
 @st.cache(hash_funcs={folium.folium.Map: lambda _: None}, allow_output_mutation=True)
 def make_map(df_station_info, field_to_color_by):
     main_map = folium.Map(location=(52, -121), zoom_start=5)
-    colormap = linear.RdYlBu_08.scale(0,2000)
+    colormap = linear.RdYlGn_08.scale(-10,0)
     colormap.add_to(main_map)
 
     for i in df_station_info.index:
@@ -33,16 +33,19 @@ def make_map(df_station_info, field_to_color_by):
         elev = df_station_info['ELEV'].loc[i]
         name = df_station_info['ID'].loc[i]
 
-        icon_color = colormap(elev)
+        if np.isnan( df_station_info[field_to_color_by].loc[i] ):
+            continue
+        else:
+            icon_color = colormap(df_station_info[field_to_color_by].loc[i])
 
-        folium.CircleMarker(location=[lat, lon],
-                    fill=True,
-                    fill_color=icon_color,
-                    color=None,
-                    fill_opacity=0.7,
-                    radius=5,
-                    popup=name,
-                    ).add_to(main_map)
+            folium.CircleMarker(location=[lat, lon],
+                        fill=True,
+                        fill_color=icon_color,
+                        color='black',
+                        fill_opacity=0.8,
+                        radius=5,
+                        popup=name,
+                        ).add_to(main_map)
     return main_map
 
 def add_lapse_rate(lapse_type, date_debut, date_fin, elevation_station, elevation_rdrs):
@@ -155,11 +158,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     # Plot
     date = df_station['date_from'].to_list()
-    temp_station_min = df_station['Tmin'] 
-    temp_station_max = df_station['Tmax'] 
+    temp_station_min = np.array(df_station['Tmin'].to_list()) 
+    temp_station_max = np.array(df_station['Tmax'].to_list()) 
     temp_rdrs_min = df_rdrs['Tmin'].to_list()
     temp_rdrs_max = np.array(df_rdrs['Tmax'].to_list())
-    biais = temp_rdrs_max - temp_station_max
+
+    biais = (temp_rdrs_max + lapse_rate) - temp_station_max
+    print(biais)
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
@@ -190,10 +195,10 @@ dataset = st.selectbox('Dataset',['ECCC network','BC archive'])
 year = st.radio('Pick the year',['2017','2018'])
 
 if dataset == 'ECCC network':
-    df_station_info = pd.read_csv('data/station-info-eccc.obs', delim_whitespace=True, skiprows=2)
+    df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
 elif dataset == 'BC archive':
-    df_station_info = pd.read_csv('data/station-info-canswe.obs', delim_whitespace=True, skiprows=2)
-main_map = make_map(df_station_info, 'ELEV')
+    df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
+main_map = make_map(df_station_info, 'DATA.BIAIS_2017')
 
 col1, col2, col3 = st.columns([0.7,0.3,1])
 
@@ -230,9 +235,7 @@ if st_data['last_object_clicked'] is not None:
         st.write("Longitude:", clicked_lon)
         st.write("Station elevation:", clicked_elev)
         st.write("Model elevation:", elevation)
-        st.write("Biais sur la periode:", np.average(biais))
 
-
-
-
+        biais_mean = np.nanmean(biais, dtype='float32')
+        st.write("Biais sur la periode:", biais_mean)
 
