@@ -99,6 +99,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         df_station_sd['SD']   = df_station['SD']
         mask = (df_station_sd['date'] > date_debut) & (df_station_sd['date'] <= date_fin)
         df_station_sd = df_station_sd.loc[mask]
+        df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
+        print(df_station_sd)
 
     def func_station(val):
         minimum_val = df_station[val['date_from'] : val['date_to']]['TT'].min()
