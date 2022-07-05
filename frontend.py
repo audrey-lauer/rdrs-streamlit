@@ -24,7 +24,7 @@ st.set_page_config(layout="wide")
 @st.cache(hash_funcs={folium.folium.Map: lambda _: None}, allow_output_mutation=True)
 def make_map(df_station_info, field_to_color_by):
     main_map = folium.Map(location=(52, -121), zoom_start=5)
-    colormap = linear.RdYlGn_08.scale(-10,0)
+    colormap = linear.RdYlGn_07.scale(-6,0)
     colormap.add_to(main_map)
 
     for i in df_station_info.index:
@@ -182,7 +182,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     ax1.grid(True)
 
-    plt.legend(['obs','RDRSv2.1'])
+    plt.legend(['Tmax obs','Tmax RDRSv2.1', 'SD obs', 'SD RDRSv2.1'])
     plt.title('Tmax at '+clicked_name)
 
     return fig, elevation, biais
