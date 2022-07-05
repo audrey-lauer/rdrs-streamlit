@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-import datetime as dt
+#import datetime as dt
+from datetime import datetime, timedelta
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import RendererAgg
@@ -44,12 +45,48 @@ def make_map(df_station_info, field_to_color_by):
                     ).add_to(main_map)
     return main_map
 
-def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
-    #if clicked_id == '1060844':
+def add_lapse_rate(lapse_type, date_debut, date_fin, elevation_station, elevation_rdrs):
+    # Date array: dt = 1 day
+    date1 = datetime(int(date_debut[0:4]),int(date_debut[5:7]),int(date_debut[8:10]))
+    date2 = datetime(int(date_fin[0:4]),  int(date_fin[5:7]),  int(date_fin[8:10])) + timedelta(days=1)
+    date_list = np.arange(date1, date2, timedelta(days=1)).astype(datetime)
+    
+    if lapse_type == 'none':
+        lapse_rate = np.zeros_like(date_list)
+    elif lapse_type == 'fixed':
+        lapse_rate = np.zeros_like(date_list)
+        lapse_rate = lapse_rate + 4.5*(elevation_rdrs - elevation_station)/1000
+    elif lapse_type == 'Stahl':
+        lapse_rate = []
+        stahl = {
+            '01': -3,
+            '02': -4,
+            '03': -7,
+            '04': -8,
+            '05': -8,
+            '06': -8,
+            '07': -8,
+            '08': -7,
+            '09': -7,
+            '10': -6,
+            '11': -4,
+            '12': -4
+        }
+        for date in date_list:
+            month = date.month
+            if month < 10:
+                month = '0'+str(month)
+            else:
+                month = str(month)
+            lapse_rate.append( -1 * stahl[month]*(elevation_rdrs - elevation_station)/1000 )
+
+    return lapse_rate
+
+def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type):
     # Dates
     date_debut = year+'-01-01'
     date_fin   = year+'-12-31'
-
+ 
     # Observations
     df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
 
@@ -98,7 +135,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
         df_rdrs_sd['SD']   = df_rdrs['SD']
         mask = (df_rdrs_sd['date'] > date_debut) & (df_rdrs_sd['date'] <= date_fin)
         df_rdrs_sd = df_rdrs_sd.loc[mask]
-    print(df_rdrs_sd)
 
     def func_rdrs(val):
         minimum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].min()
@@ -113,18 +149,22 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly):
     df_rdrs.set_index('date', inplace=True)
     df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
 
+    # Lapse rate
+    lapse_rate = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation)
+    lapse_rate = np.array(lapse_rate)
+
     # Plot
     date = df_station['date_from'].to_list()
     temp_station_min = df_station['Tmin'] 
     temp_station_max = df_station['Tmax'] 
-    temp_rdrs_min = df_rdrs['Tmin']
-    temp_rdrs_max = df_rdrs['Tmax']
+    temp_rdrs_min = df_rdrs['Tmin'].to_list()
+    temp_rdrs_max = np.array(df_rdrs['Tmax'].to_list())
     biais = temp_rdrs_max - temp_station_max
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
     ax1.plot(date, temp_station_max)
-    ax1.plot(date, temp_rdrs_max)
+    ax1.plot(date, (temp_rdrs_max + lapse_rate))
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
@@ -171,22 +211,24 @@ if st_data['last_object_clicked'] is not None:
     clicked_id   = clicked_info['NO'].to_list()[0]
     clicked_name = clicked_info['ID'].to_list()[0]
     clicked_hourly = clicked_info['DATA.HOURLY'].to_list()[0]
+    clicked_elev   = clicked_info['ELEV'].to_list()[0]
     if clicked_hourly == 1: clicked_hourly = True
     else:                   clicked_hourly = False
 
     with col3:
         st.header("Timeserie")
-        try:
-            fig, elevation, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly)
-            st.write(fig)
-        except:
-            st.write("No data yet")
+        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
+        #try:
+        fig, elevation, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+        st.write(fig)
+        #except:
+        #    st.write("No data yet")
 
     with col2:
         st.header("Information")
         st.write("Latitude:", clicked_lat)
         st.write("Longitude:", clicked_lon)
-        st.write("Station elevation:", clicked_info['ELEV'].to_list()[0])
+        st.write("Station elevation:", clicked_elev)
         st.write("Model elevation:", elevation)
         st.write("Biais sur la periode:", np.average(biais))
 
