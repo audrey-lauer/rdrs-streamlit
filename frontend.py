@@ -168,21 +168,21 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
-    ax1.plot(date, temp_station_max)
-    ax1.plot(date, (temp_rdrs_max + lapse_rate))
+    ax1.plot(date, temp_station_max, 'k')
+    ax1.plot(date, (temp_rdrs_max + lapse_rate), 'b')
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
     if not df_rdrs_sd.empty:
         ax2 = ax1.twinx()
-        ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--')
-        ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--')
+        ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--k')
+        ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--b')
         ax2.set_ylabel('Snow depth [cm]')
         ax2.set_ylim([-5,500])
 
     ax1.grid(True)
 
-    plt.legend(['Tmax obs','Tmax RDRSv2.1', 'SD obs', 'SD RDRSv2.1'])
+    plt.legend(['obs','RDRSv2.1'])
     plt.title('Tmax at '+clicked_name)
 
     return fig, elevation, biais
