@@ -131,7 +131,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     # RDRS
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
-    elevation = df_rdrs['elev'].loc[0]
+    elevation_rdrs = df_rdrs['elev'].loc[0]
 
     df_rdrs_sd = pd.DataFrame()
     if 'SD' in df_rdrs.columns:
@@ -153,27 +153,52 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     df_rdrs.set_index('date', inplace=True)
     df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
 
+    # ERA5
+    df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
+    print(df_era5)
+    elevation_era5 = df_era5['elev'].loc[0]
+
+    def func_era5(val):
+        minimum_val = df_era5[val['date_from'] : val['date_to']]['TT'].min()
+        maximum_val = df_era5[val['date_from'] : val['date_to']]['TT'].max()
+        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+
+    date_list = pd.date_range(start=date_debut, end=date_fin)
+    df_temp = pd.DataFrame()
+    df_temp['date_from'] = date_list
+    df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
+    df_era5.set_index('date', inplace=True)
+    df_era5 = pd.concat(list(df_temp.apply(func_era5, axis=1)))
+    print(df_era5)
+
     # Lapse rate
-    lapse_rate = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation)
-    lapse_rate = np.array(lapse_rate)
+    lapse_rate_rdrs = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation_rdrs)
+    lapse_rate_rdrs = np.array(lapse_rate_rdrs)
+
+    lapse_rate_era5 = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation_era5)
+    lapse_rate_era5 = np.array(lapse_rate_era5)
 
     # Plot
     date = df_station['date_from'].to_list()
     temp_station_min = np.array(df_station['Tmin'].to_list()) 
     temp_station_max = np.array(df_station['Tmax'].to_list()) 
-    temp_rdrs_min = df_rdrs['Tmin'].to_list()
+    temp_rdrs_min = np.array(df_rdrs['Tmin'].to_list())
     temp_rdrs_max = np.array(df_rdrs['Tmax'].to_list())
+    temp_era5_min = np.array(df_era5['Tmin'].to_list())
+    temp_era5_max = np.array(df_era5['Tmax'].to_list())
 
-    biais = (temp_rdrs_max + lapse_rate) - temp_station_max
+    biais = (temp_rdrs_max + lapse_rate_rdrs) - temp_station_max
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
     tmax_obs  = ax1.plot(date, temp_station_max, 'k', label='Tmax obs')
-    tmax_rdrs = ax1.plot(date, (temp_rdrs_max + lapse_rate), 'b', label='Tmax RDRS')
+    tmax_rdrs = ax1.plot(date, (temp_rdrs_max + lapse_rate_rdrs), 'b', label='Tmax RDRS')
+    tmax_era5 = ax1.plot(date, (temp_era5_max + lapse_rate_era5), 'g', label='Tmax ERA5')
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
-    lns = tmax_obs + tmax_rdrs
+    lns = tmax_obs + tmax_rdrs + tmax_era5
 
     if not df_rdrs_sd.empty:
         ax2 = ax1.twinx()
@@ -192,7 +217,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     plt.title('Tmax at '+clicked_name)
 
-    return fig, elevation, biais
+    return fig, elevation_rdrs, elevation_era5, biais
 
 
 st.write('Hourly stations')
@@ -231,7 +256,7 @@ if st_data['last_object_clicked'] is not None:
         st.header("Timeserie")
         lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
         #try:
-        fig, elevation, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+        fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
         st.write(fig)
         #except:
         #    st.write("No data yet")
@@ -241,7 +266,8 @@ if st_data['last_object_clicked'] is not None:
         st.write("Latitude:", clicked_lat)
         st.write("Longitude:", clicked_lon)
         st.write("Station elevation:", clicked_elev)
-        st.write("Model elevation:", elevation)
+        st.write("Model elevation:", elevation_rdrs)
+        st.write("ERA5-land elevation:", elevation_era5)
 
         biais_mean = np.nanmean(biais, dtype='float32')
         st.write("Biais sur la periode:", biais_mean)
