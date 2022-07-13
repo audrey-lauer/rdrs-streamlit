@@ -155,8 +155,15 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     # ERA5
     df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
-    print(df_era5)
-    elevation_era5 = df_era5['elev'].loc[0]
+    elevation_era5 = df_era5['elev'].iloc[0]
+
+    df_era5_sd = pd.DataFrame()
+    if 'SD' in df_era5.columns:
+        df_era5_sd['date'] = df_era5['date']
+        df_era5_sd['SD']   = df_era5['SD']
+        mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
+        df_era5_sd = df_era5_sd.loc[mask]
+        df_era5_sd = df_era5_sd[df_era5_sd['SD'].notna()]
 
     def func_era5(val):
         minimum_val = df_era5[val['date_from'] : val['date_to']]['TT'].min()
@@ -170,7 +177,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     df_era5.set_index('date', inplace=True)
     df_era5 = pd.concat(list(df_temp.apply(func_era5, axis=1)))
-    print(df_era5)
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation_rdrs)
@@ -208,6 +214,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         ax2.set_ylim([-5,500])
 
         lns = lns + sd_obs + sd_rdrs
+
+        if not df_era5_sd.empty:
+            sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd['SD'], '--g', label='SD ERA5')
+
+            lns = lns + sd_era5
 
     ax1.grid(True)
 
