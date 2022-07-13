@@ -235,7 +235,6 @@ st.write('Hourly stations')
 
 dataset = st.selectbox('Dataset',['ECCC network','BC archive'])
 
-year = st.radio('Pick the year',['2017','2018'])
 
 if dataset == 'ECCC network':
     df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
@@ -263,23 +262,32 @@ if st_data['last_object_clicked'] is not None:
     if clicked_hourly == 1: clicked_hourly = True
     else:                   clicked_hourly = False
 
+    with col2:
+        st.header("Parameters")
+        st.write("Choose the parameters for timeserie")
+
+        year = st.radio('Pick the year',['2017','2018'])
+        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
+        min_or_max = st.radio('Tmin or Tmax?',['min','max'])
+
     with col3:
         st.header("Timeserie")
-        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
-        #try:
+
         fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+ 
+        df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
+        df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
+        st.dataframe(df_elev)
+
         st.write(fig)
-        #except:
-        #    st.write("No data yet")
 
-    with col2:
-        st.header("Information")
-        st.write("Latitude:", clicked_lat)
-        st.write("Longitude:", clicked_lon)
-        st.write("Station elevation:", clicked_elev)
-        st.write("Model elevation:", elevation_rdrs)
-        st.write("ERA5-land elevation:", elevation_era5)
+        #st.header("Information")
+        #st.write("Latitude:", clicked_lat)
+        #st.write("Longitude:", clicked_lon)
+        #st.write("Station elevation:", clicked_elev)
+        #st.write("Model elevation:", elevation_rdrs)
+        #st.write("ERA5-land elevation:", elevation_era5)
 
-        biais_mean = np.nanmean(biais, dtype='float32')
-        st.write("Biais sur la periode:", biais_mean)
+        #biais_mean = np.nanmean(biais, dtype='float32')
+        #st.write("Biais sur la periode:", biais_mean)
 
