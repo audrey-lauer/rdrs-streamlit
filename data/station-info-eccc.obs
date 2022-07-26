@@ -1,5 +1,5 @@
 Obs 3.1
-Stations a l'ouest du BC
+blablabla
 ID                  station   NO           LAT      LON       ELEV     DATA.HOURLY
 "Bella Bella"       71582     1060815      52.19    -128.16   43       1
 "Bella Coola"       71533     1060844      52.39    -126.59   36.89    1 
@@ -23,4 +23,5 @@ ID                  station   NO           LAT      LON       ELEV     DATA.HOUR
 "Fort St-James"     51538     1092975      54.46    -124.29   688      1
 "Esquimalt Harbour" 52        1012710      48.43    -123.44   3        1
 "Sandspit"          48648     1057052      53.25    -131.81   6.4      1
+"Kitimat"           402       1064320      54.05    -128.63   98       0
 

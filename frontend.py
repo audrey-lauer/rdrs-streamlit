@@ -48,12 +48,13 @@ def make_map(df_station_info, field_to_color_by):
                         ).add_to(main_map)
     return main_map
 
-def add_lapse_rate(lapse_type, date_debut, date_fin, elevation_station, elevation_rdrs):
+def add_lapse_rate(lapse_type, date_list, elevation_station, elevation_rdrs):
     # Date array: dt = 1 day
-    date1 = datetime(int(date_debut[0:4]),int(date_debut[5:7]),int(date_debut[8:10]))
-    date2 = datetime(int(date_fin[0:4]),  int(date_fin[5:7]),  int(date_fin[8:10])) + timedelta(days=1)
-    date_list = np.arange(date1, date2, timedelta(days=1)).astype(datetime)
-    
+    #date1 = datetime(int(date_debut[0:4]),int(date_debut[5:7]),int(date_debut[8:10]))
+    #date2 = datetime(int(date_fin[0:4]),  int(date_fin[5:7]),  int(date_fin[8:10])) + timedelta(days=1)
+    #date_list = np.arange(date1, date2, timedelta(days=1)).astype(datetime)
+    date_list = date_list.to_list()
+
     if lapse_type == 'none':
         lapse_rate = np.zeros_like(date_list)
     elif lapse_type == 'fixed':
@@ -87,16 +88,16 @@ def add_lapse_rate(lapse_type, date_debut, date_fin, elevation_station, elevatio
 
 def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type):
     # Dates
-    date_debut = year+'-01-01'
+    date_debut = year+'-01-02'
     date_fin   = year+'-12-31'
  
     # Observations
-    df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
+    df_station_og = pd.read_pickle("data/"+clicked_id+"-station.pkl")
 
     df_station_sd = pd.DataFrame()
-    if 'SD' in df_station.columns:
-        df_station_sd['date'] = df_station['date']
-        df_station_sd['SD']   = df_station['SD']
+    if 'SD' in df_station_og.columns:
+        df_station_sd['date'] = df_station_og['date']
+        df_station_sd['SD']   = df_station_og['SD']
         mask = (df_station_sd['date'] > date_debut) & (df_station_sd['date'] <= date_fin)
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
@@ -111,26 +112,29 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         maximum_val = df_station[val['date_from'] : val['date_to']]['Tmax'].max()
         return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
 
-    if clicked_hourly:
+    #if clicked_hourly:
+    try:
         date_list = pd.date_range(start=date_debut, end=date_fin)
         df_temp = pd.DataFrame()
         df_temp['date_from'] = date_list
         df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
 
+        df_station = df_station_og.copy()
         df_station.set_index('date', inplace=True)
         df_station = pd.concat(list(df_temp.apply(func_station, axis=1)))
 
-    elif not clicked_hourly:
-        date_list = pd.date_range(start=date_debut, end=date_fin)
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+    #elif not clicked_hourly:
+    except:
+        df_station = df_station_og.copy()
+        mask = (df_station['date'] >= date_debut) & (df_station['date'] <= date_fin)
+        df_station = df_station.loc[mask]
+        df_station['date_from'] = df_station['date']
 
         df_station.set_index('date', inplace=True)
-        df_station = pd.concat(list(df_temp.apply(func_station_daily, axis=1)))
 
     # RDRS
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
+    df_rdrs = df_rdrs.drop_duplicates(subset='date')
     elevation_rdrs = df_rdrs['elev'].loc[0]
 
     df_rdrs_sd = pd.DataFrame()
@@ -153,37 +157,45 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     df_rdrs.set_index('date', inplace=True)
     df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
 
-    # ERA5
-    df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
-    elevation_era5 = df_era5['elev'].iloc[0]
-
-    df_era5_sd = pd.DataFrame()
-    if 'SD' in df_era5.columns:
-        df_era5_sd['date'] = df_era5['date']
-        df_era5_sd['SD']   = df_era5['SD']
-        mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
-        df_era5_sd = df_era5_sd.loc[mask]
-        df_era5_sd = df_era5_sd[df_era5_sd['SD'].notna()]
-
-    def func_era5(val):
-        minimum_val = df_era5[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_era5[val['date_from'] : val['date_to']]['TT'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    date_list = pd.date_range(start=date_debut, end=date_fin)
-    df_temp = pd.DataFrame()
-    df_temp['date_from'] = date_list
-    df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-    df_era5.set_index('date', inplace=True)
-    df_era5 = pd.concat(list(df_temp.apply(func_era5, axis=1)))
-
     # Lapse rate
-    lapse_rate_rdrs = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation_rdrs)
+    lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
     lapse_rate_rdrs = np.array(lapse_rate_rdrs)
 
-    lapse_rate_era5 = add_lapse_rate(lapse_type, date_debut, date_fin, clicked_elev, elevation_era5)
-    lapse_rate_era5 = np.array(lapse_rate_era5)
+    # ERA5
+    try:
+        df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
+        elevation_era5 = df_era5['elev'].iloc[0]
+
+        df_era5_sd = pd.DataFrame()
+        if 'SD' in df_era5.columns:
+            df_era5_sd['date'] = df_era5['date']
+            df_era5_sd['SD']   = df_era5['SD']
+            mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
+            df_era5_sd = df_era5_sd.loc[mask]
+            df_era5_sd = df_era5_sd[df_era5_sd['SD'].notna()]
+
+        def func_era5(val):
+            minimum_val = df_era5[val['date_from'] : val['date_to']]['TT'].min()
+            maximum_val = df_era5[val['date_from'] : val['date_to']]['TT'].max()
+            return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+
+        date_list = pd.date_range(start=date_debut, end=date_fin)
+        df_temp = pd.DataFrame()
+        df_temp['date_from'] = date_list
+        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
+        df_era5.set_index('date', inplace=True)
+        df_era5 = pd.concat(list(df_temp.apply(func_era5, axis=1)))
+
+        # Lapse rate
+        lapse_rate_era5 = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_era5)
+        lapse_rate_era5 = np.array(lapse_rate_era5)
+
+        era5 = True
+
+    except:
+        elevation_era5 = 0.
+        era5 = False
 
     # Plot
     date = df_station['date_from'].to_list()
@@ -191,20 +203,25 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     temp_station_max = np.array(df_station['Tmax'].to_list()) 
     temp_rdrs_min = np.array(df_rdrs['Tmin'].to_list())
     temp_rdrs_max = np.array(df_rdrs['Tmax'].to_list())
-    temp_era5_min = np.array(df_era5['Tmin'].to_list())
-    temp_era5_max = np.array(df_era5['Tmax'].to_list())
 
-    biais = (temp_rdrs_max + lapse_rate_rdrs) - temp_station_max
+    if era5:
+        temp_era5_min = np.array(df_era5['Tmin'].to_list())
+        temp_era5_max = np.array(df_era5['Tmax'].to_list())
+
+    #biais = (temp_rdrs_max + lapse_rate_rdrs) - temp_station_max
+    biais = 0.
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
     tmax_obs  = ax1.plot(date, temp_station_max, 'k', label='Tmax obs')
     tmax_rdrs = ax1.plot(date, (temp_rdrs_max + lapse_rate_rdrs), 'b', label='Tmax RDRS')
-    tmax_era5 = ax1.plot(date, (temp_era5_max + lapse_rate_era5), 'g', label='Tmax ERA5')
+    if era5: 
+        tmax_era5 = ax1.plot(date, (temp_era5_max + lapse_rate_era5), 'g', label='Tmax ERA5')
+        lns = tmax_obs + tmax_rdrs + tmax_era5
+    else:
+        lns = tmax_obs + tmax_rdrs
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
-
-    lns = tmax_obs + tmax_rdrs + tmax_era5
 
     if not df_rdrs_sd.empty:
         ax2 = ax1.twinx()
@@ -266,7 +283,7 @@ if st_data['last_object_clicked'] is not None:
         st.header("Parameters")
         st.write("Choose the parameters for timeserie")
 
-        year = st.radio('Pick the year',['2017','2018'])
+        year = st.radio('Pick the year',['1996', '2017','2018'])
         lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
         min_or_max = st.radio('Tmin or Tmax?',['min','max'])
 
