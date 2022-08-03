@@ -137,6 +137,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     df_rdrs = df_rdrs.drop_duplicates(subset='date')
     elevation_rdrs = df_rdrs['elev'].loc[0]
 
+    try:
+        df_rdrs_1stlevel = pd.read_pickle("data/"+clicked_id+"-RDRS-1st-level.pkl")
+        df_rdrs_1stlevel = df_rdrs.drop_duplicates(subset='date')
+    except:
+        df_rdrs_1stlevel = pd.DataFrame()
+
     df_rdrs_sd = pd.DataFrame()
     if 'SD' in df_rdrs.columns:
         df_rdrs_sd['date'] = df_rdrs['date']
@@ -149,6 +155,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         maximum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].max()
         return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
 
+    def func_rdrs_1stlevel(val):
+        minimum_val = df_rdrs_1stlevel[val['date_from'] : val['date_to']]['TT'].min()
+        maximum_val = df_rdrs_1stlevel[val['date_from'] : val['date_to']]['TT'].max()
+        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+
     date_list = pd.date_range(start=date_debut, end=date_fin)
     df_temp = pd.DataFrame()
     df_temp['date_from'] = date_list
@@ -156,6 +167,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     df_rdrs.set_index('date', inplace=True)
     df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
+
+    if not df_rdrs_1stlevel.empty:
+        df_rdrs_1stlevel.set_index('date', inplace=True)
+        df_rdrs_1stlevel = pd.concat(list(df_temp.apply(func_rdrs_1stlevel, axis=1)))
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
@@ -222,6 +237,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         lns = tmax_obs + tmax_rdrs
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
+
+    if not df_rdrs_1stlevel.empty:
+        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel['Tmin'].to_list()), 'r', label='1st level RDRS')
+        lns = lns + tmax_rdrs_1stlevel
 
     if not df_rdrs_sd.empty:
         ax2 = ax1.twinx()
