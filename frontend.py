@@ -314,7 +314,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     # added these three lines
     labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs)
+    ax1.legend(lns, labs, bbox_to_anchor=(1.08,1), borderaxespad=0)
 
     plt.title('Tmax at '+clicked_name)
 
