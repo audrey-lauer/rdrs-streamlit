@@ -10,7 +10,7 @@ import glob
 from streamlit_folium import folium_static, st_folium
 import folium
 from branca.colormap import linear, LinearColormap
-#from backend import make_map, make_timeserie
+from backend import add_lapse_rate, find_min_max
 
 matplotlib.use("agg")
 _lock = RendererAgg.lock
@@ -48,48 +48,11 @@ def make_map(df_station_info, field_to_color_by):
                         ).add_to(main_map)
     return main_map
 
-def add_lapse_rate(lapse_type, date_list, elevation_station, elevation_rdrs):
-    # Date array: dt = 1 day
-    #date1 = datetime(int(date_debut[0:4]),int(date_debut[5:7]),int(date_debut[8:10]))
-    #date2 = datetime(int(date_fin[0:4]),  int(date_fin[5:7]),  int(date_fin[8:10])) + timedelta(days=1)
-    #date_list = np.arange(date1, date2, timedelta(days=1)).astype(datetime)
-    date_list = date_list.to_list()
-
-    if lapse_type == 'none':
-        lapse_rate = np.zeros_like(date_list)
-    elif lapse_type == 'fixed':
-        lapse_rate = np.zeros_like(date_list)
-        lapse_rate = lapse_rate + 4.5*(elevation_rdrs - elevation_station)/1000
-    elif lapse_type == 'Stahl':
-        lapse_rate = []
-        stahl = {
-            '01': -3,
-            '02': -4,
-            '03': -7,
-            '04': -8,
-            '05': -8,
-            '06': -8,
-            '07': -8,
-            '08': -7,
-            '09': -7,
-            '10': -6,
-            '11': -4,
-            '12': -4
-        }
-        for date in date_list:
-            month = date.month
-            if month < 10:
-                month = '0'+str(month)
-            else:
-                month = str(month)
-            lapse_rate.append( -1 * stahl[month]*(elevation_rdrs - elevation_station)/1000 )
-
-    return lapse_rate
-
 def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type):
     # Dates
     date_debut = year+'-01-02'
     date_fin   = year+'-12-31'
+    date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
     df_station_og = pd.read_pickle("data/"+clicked_id+"-station.pkl")
@@ -102,35 +65,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
 
-    def func_station(val):
-        minimum_val = df_station[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_station[val['date_from'] : val['date_to']]['TT'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    def func_station_daily(val):
-        minimum_val = df_station[val['date_from'] : val['date_to']]['Tmin'].min()
-        maximum_val = df_station[val['date_from'] : val['date_to']]['Tmax'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    #if clicked_hourly:
-    try:
-        date_list = pd.date_range(start=date_debut, end=date_fin)
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-        df_station = df_station_og.copy()
-        df_station.set_index('date', inplace=True)
-        df_station = pd.concat(list(df_temp.apply(func_station, axis=1)))
-
-    #elif not clicked_hourly:
-    except:
-        df_station = df_station_og.copy()
-        mask = (df_station['date'] >= date_debut) & (df_station['date'] <= date_fin)
-        df_station = df_station.loc[mask]
-        df_station['date_from'] = df_station['date']
-
-        df_station.set_index('date', inplace=True)
+    df_station = find_min_max(df_station_og, date_list)
 
     # RDRS
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
@@ -150,31 +85,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         mask = (df_rdrs_sd['date'] > date_debut) & (df_rdrs_sd['date'] <= date_fin)
         df_rdrs_sd = df_rdrs_sd.loc[mask]
 
-    def func_rdrs(val):
-        minimum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_rdrs[val['date_from'] : val['date_to']]['TT'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    def func_rdrs_1stlevel(val):
-        minimum_val = df_rdrs_1stlevel[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_rdrs_1stlevel[val['date_from'] : val['date_to']]['TT'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    date_list = pd.date_range(start=date_debut, end=date_fin)
-    df_temp = pd.DataFrame()
-    df_temp['date_from'] = date_list
-    df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-    df_rdrs.set_index('date', inplace=True)
-    df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
+    df_rdrs = find_min_max(df_rdrs, date_list)
 
     if not df_rdrs_1stlevel.empty:
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-        df_rdrs_1stlevel.set_index('date', inplace=True)
-        df_rdrs_1stlevel = pd.concat(list(df_temp.apply(func_rdrs_1stlevel, axis=1)))
+        df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
@@ -193,18 +107,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
             df_era5_sd = df_era5_sd.loc[mask]
             df_era5_sd = df_era5_sd[df_era5_sd['SD'].notna()]
 
-        def func_era5(val):
-            minimum_val = df_era5[val['date_from'] : val['date_to']]['TT'].min()
-            maximum_val = df_era5[val['date_from'] : val['date_to']]['TT'].max()
-            return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-        date_list = pd.date_range(start=date_debut, end=date_fin)
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-        df_era5.set_index('date', inplace=True)
-        df_era5 = pd.concat(list(df_temp.apply(func_era5, axis=1)))
+        df_era5 = find_min_max(df_era5, date_list)
 
         # Lapse rate
         lapse_rate_era5 = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_era5)
@@ -228,18 +131,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
             df_gdrs_sd = df_gdrs_sd.loc[mask]
             df_gdrs_sd = df_gdrs_sd[df_gdrs_sd['SD'].notna()]
 
-        def func_gdrs(val):
-            minimum_val = df_gdrs[val['date_from'] : val['date_to']]['TT'].min()
-            maximum_val = df_gdrs[val['date_from'] : val['date_to']]['TT'].max()
-            return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-        date_list = pd.date_range(start=date_debut, end=date_fin)
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-        df_gdrs.set_index('date', inplace=True)
-        df_gdrs = pd.concat(list(df_temp.apply(func_gdrs, axis=1)))
+        df_gdrs = find_min_max(df_gdrs, date_list)
 
         # Lapse rate
         #lapse_rate_gdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_gdrs)
@@ -249,7 +141,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     except:
         gdrs = False
-
 
     # Plot
     date = df_station['date_from'].to_list()
