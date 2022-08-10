@@ -169,6 +169,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     df_rdrs = pd.concat(list(df_temp.apply(func_rdrs, axis=1)))
 
     if not df_rdrs_1stlevel.empty:
+        df_temp = pd.DataFrame()
+        df_temp['date_from'] = date_list
+        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
         df_rdrs_1stlevel.set_index('date', inplace=True)
         df_rdrs_1stlevel = pd.concat(list(df_temp.apply(func_rdrs_1stlevel, axis=1)))
 
@@ -212,6 +216,41 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         elevation_era5 = 0.
         era5 = False
 
+    # GDRS
+    try:
+        df_gdrs = pd.read_pickle("data/"+clicked_id+"-GDRS.pkl")
+
+        df_gdrs_sd = pd.DataFrame()
+        if 'SD' in df_gdrs.columns:
+            df_gdrs_sd['date'] = df_gdrs['date']
+            df_gdrs_sd['SD']   = df_gdrs['SD']
+            mask = (df_gdrs_sd['date'] > date_debut) & (df_gdrs_sd['date'] <= date_fin)
+            df_gdrs_sd = df_gdrs_sd.loc[mask]
+            df_gdrs_sd = df_gdrs_sd[df_gdrs_sd['SD'].notna()]
+
+        def func_gdrs(val):
+            minimum_val = df_gdrs[val['date_from'] : val['date_to']]['TT'].min()
+            maximum_val = df_gdrs[val['date_from'] : val['date_to']]['TT'].max()
+            return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+
+        date_list = pd.date_range(start=date_debut, end=date_fin)
+        df_temp = pd.DataFrame()
+        df_temp['date_from'] = date_list
+        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
+        df_gdrs.set_index('date', inplace=True)
+        df_gdrs = pd.concat(list(df_temp.apply(func_gdrs, axis=1)))
+
+        # Lapse rate
+        #lapse_rate_gdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_gdrs)
+        #lapse_rate_gdrs = np.array(lapse_rate_gdrs)
+
+        gdrs = True
+
+    except:
+        gdrs = False
+
+
     # Plot
     date = df_station['date_from'].to_list()
     temp_station_min = np.array(df_station['Tmin'].to_list()) 
@@ -223,6 +262,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         temp_era5_min = np.array(df_era5['Tmin'].to_list())
         temp_era5_max = np.array(df_era5['Tmax'].to_list())
 
+    if gdrs:
+        temp_gdrs_min = np.array(df_gdrs['Tmin'].to_list())
+        temp_gdrs_max = np.array(df_gdrs['Tmax'].to_list())
+
     #biais = (temp_rdrs_max + lapse_rate_rdrs) - temp_station_max
     biais = 0.
 
@@ -230,16 +273,22 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     tmax_obs  = ax1.plot(date, temp_station_max, 'k', label='Tmax obs')
     tmax_rdrs = ax1.plot(date, (temp_rdrs_max + lapse_rate_rdrs), 'b', label='Tmax RDRS')
+
     if era5: 
         tmax_era5 = ax1.plot(date, (temp_era5_max + lapse_rate_era5), 'g', label='Tmax ERA5')
         lns = tmax_obs + tmax_rdrs + tmax_era5
     else:
         lns = tmax_obs + tmax_rdrs
+
+    if gdrs: 
+        tmax_gdrs = ax1.plot(date, (temp_gdrs_max), 'm', label='Tmax GDRS')
+        lns = lns + tmax_gdrs
+
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
     if not df_rdrs_1stlevel.empty:
-        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel['Tmin'].to_list()), 'r', label='1st level RDRS')
+        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel['Tmin'].to_list()), 'c', label='1st level RDRS')
         lns = lns + tmax_rdrs_1stlevel
 
     if not df_rdrs_sd.empty:
@@ -255,6 +304,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
             sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd['SD'], '--g', label='SD ERA5')
 
             lns = lns + sd_era5
+
+        if not df_gdrs_sd.empty:
+            sd_gdrs = ax2.plot(df_gdrs_sd['date'],    df_gdrs_sd['SD'], '--m', label='SD GDRS')
+
+            lns = lns + sd_gdrs
 
     ax1.grid(True)
 
