@@ -191,12 +191,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
         lns = lns + sd_obs + sd_rdrs
 
-        if not df_era5_sd.empty:
+        if era5 and not df_era5_sd.empty:
             sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd['SD'], '--g', label='SD ERA5')
 
             lns = lns + sd_era5
 
-        if not df_gdrs_sd.empty:
+        if gdrs and not df_gdrs_sd.empty:
             sd_gdrs = ax2.plot(df_gdrs_sd['date'],    df_gdrs_sd['SD'], '--m', label='SD GDRS')
 
             lns = lns + sd_gdrs
