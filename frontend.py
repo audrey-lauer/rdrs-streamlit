@@ -10,7 +10,7 @@ import glob
 from streamlit_folium import folium_static, st_folium
 import folium
 from branca.colormap import linear, LinearColormap
-from backend import add_lapse_rate, find_min_max
+from backend import add_lapse_rate#, find_min_max
 
 matplotlib.use("agg")
 _lock = RendererAgg.lock
@@ -48,10 +48,36 @@ def make_map(df_station_info, field_to_color_by):
                         ).add_to(main_map)
     return main_map
 
+def find_min_max(df, date_list):
+
+    def func(val):
+        minimum_val = df_copy[val['date_from'] : val['date_to']]['TT'].min()
+        maximum_val = df_copy[val['date_from'] : val['date_to']]['TT'].max()
+        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+
+    if 'TT' in df.columns:
+        df_temp = pd.DataFrame()
+        df_temp['date_from'] = date_list
+        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
+        df_copy = df.copy()
+        df_copy.set_index('date', inplace=True)
+        df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
+
+    else:
+        df_copy = df.copy()
+        mask = (df_copy['date'] >= date_list[0]) & (df_copy['date'] <= date_list[-1])
+        df_copy = df_copy.loc[mask]
+        df_copy['date_from'] = df_copy['date']
+
+        df_copy.set_index('date', inplace=True)
+
+    return df_copy
+
 def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type):
     # Dates
     date_debut = year+'-01-02'
-    date_fin   = year+'-12-31'
+    date_fin   = year+'-11-06'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -122,6 +148,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     # GDRS
     try:
         df_gdrs = pd.read_pickle("data/"+clicked_id+"-GDRS.pkl")
+        df_gdrs = df_gdrs.drop_duplicates(subset='date')
 
         df_gdrs_sd = pd.DataFrame()
         if 'SD' in df_gdrs.columns:

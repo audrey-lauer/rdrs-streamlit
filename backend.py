@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
+import streamlit as st
 
 # add_lapse_rate
 # Input:  - lapse_type (str)
@@ -43,30 +44,31 @@ def add_lapse_rate(lapse_type, date_list, elevation_station, elevation_rdrs):
     return lapse_rate
 
 
-def find_min_max(df, date_list):
-
-    def func(val):
-        minimum_val = df_copy[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_copy[val['date_from'] : val['date_to']]['TT'].max()
-        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
-
-    try:
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
-
-        df_copy = df.copy()
-        df_copy.set_index('date', inplace=True)
-        df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
-
-    except:
-        df_copy = df.copy()
-        mask = (df_copy['date'] >= date_list[0]) & (df_copy['date'] <= date_list[-1])
-        df_copy = df_copy.loc[mask]
-        df_copy['date_from'] = df_copy['date']
-
-        df_copy.set_index('date', inplace=True)
-    
-    return df_copy
+#@st.cache()
+#def find_min_max(df, date_list):
+#
+#    def func(val):
+#        minimum_val = df_copy[val['date_from'] : val['date_to']]['TT'].min()
+#        maximum_val = df_copy[val['date_from'] : val['date_to']]['TT'].max()
+#        return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
+#
+#    if 'TT' in df.columns: 
+#        df_temp = pd.DataFrame()
+#        df_temp['date_from'] = date_list
+#        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+#
+#        df_copy = df.copy()
+#        df_copy.set_index('date', inplace=True)
+#        df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
+#
+#    else:
+#        df_copy = df.copy()
+#        mask = (df_copy['date'] >= date_list[0]) & (df_copy['date'] <= date_list[-1])
+#        df_copy = df_copy.loc[mask]
+#        df_copy['date_from'] = df_copy['date']
+#
+#        df_copy.set_index('date', inplace=True)
+#    
+#    return df_copy
 
 
