@@ -55,7 +55,8 @@ def find_min_max(df, date_list):
         maximum_val = df_copy[val['date_from'] : val['date_to']]['TT'].max()
         return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
 
-    if 'TT' in df.columns:
+    #if 'TT' in df.columns:
+    try:
         df_temp = pd.DataFrame()
         df_temp['date_from'] = date_list
         df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
@@ -64,7 +65,8 @@ def find_min_max(df, date_list):
         df_copy.set_index('date', inplace=True)
         df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
 
-    else:
+    #else:
+    except:
         df_copy = df.copy()
         mask = (df_copy['date'] >= date_list[0]) & (df_copy['date'] <= date_list[-1])
         df_copy = df_copy.loc[mask]
@@ -91,7 +93,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
 
+    print(df_station_og)
     df_station = find_min_max(df_station_og, date_list)
+    print(df_station)
 
     # RDRS
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
