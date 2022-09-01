@@ -1,16 +1,23 @@
 import numpy as np
 import pandas as pd
+import xarray as xr
 import streamlit as st
-#import datetime as dt
 from datetime import datetime, timedelta
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import RendererAgg
+from matplotlib.cm import get_cmap
+import matplotlib.colors as mcolors
+import cartopy.crs as crs
+import cartopy.feature as cfeature
+from cartopy.feature import NaturalEarthFeature
 import glob
 from streamlit_folium import folium_static, st_folium
 import folium
 from branca.colormap import linear, LinearColormap
 from backend import add_lapse_rate#, find_min_max
+from shapely.geometry import Point, Polygon
+import geopandas as gpd
 
 matplotlib.use("agg")
 _lock = RendererAgg.lock
@@ -46,6 +53,7 @@ def make_map(df_station_info, field_to_color_by):
                         radius=5,
                         popup=name,
                         ).add_to(main_map)
+
     return main_map
 
 def find_min_max(df, date_list):
@@ -245,61 +253,117 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
 st.write('Hourly stations')
 
-dataset = st.selectbox('Dataset',['ECCC network','BC archive'])
+dataset = st.selectbox('Dataset',['ECCC network','BC archive','RDRS - ERA5_land'])
+
+if dataset == 'ECCC network' or dataset == 'BC archive':
+
+    if dataset == 'ECCC network':
+        df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
+    elif dataset == 'BC archive':
+        df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
+    main_map = make_map(df_station_info, 'DATA.BIAIS_2017')
+    
+    col1, col2, col3 = st.columns([0.7,0.3,1])
+    
+    with col1:
+        st.header("Interactive map")
+        st.write("Click on a station to generate timeserie")
+        # Plot map and get data of last click/zoom/etc
+        st_data = st_folium(main_map, width=500, height=500)
+    
+    if st_data['last_object_clicked'] is not None:
+        clicked_lat = st_data['last_object_clicked']['lat']
+        clicked_lon = st_data['last_object_clicked']['lng']
+    
+        clicked_info = df_station_info[(df_station_info['LAT'] == clicked_lat) & (df_station_info['LON'] == clicked_lon)]
+        clicked_id   = clicked_info['NO'].to_list()[0]
+        clicked_name = clicked_info['ID'].to_list()[0]
+        clicked_hourly = clicked_info['DATA.HOURLY'].to_list()[0]
+        clicked_elev   = clicked_info['ELEV'].to_list()[0]
+        if clicked_hourly == 1: clicked_hourly = True
+        else:                   clicked_hourly = False
+    
+        with col2:
+            st.header("Parameters")
+            st.write("Choose the parameters for timeserie")
+    
+            year = st.radio('Pick the year',['1996', '2017','2018'])
+            lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
+            min_or_max = st.radio('Tmin or Tmax?',['min','max'])
+    
+        with col3:
+            st.header("Timeserie")
+    
+            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+     
+            df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
+            df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
+            st.dataframe(df_elev)
+    
+            st.write(fig)
 
 
-if dataset == 'ECCC network':
-    df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
-elif dataset == 'BC archive':
-    df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
-main_map = make_map(df_station_info, 'DATA.BIAIS_2017')
 
-col1, col2, col3 = st.columns([0.7,0.3,1])
+elif dataset == 'RDRS - ERA5_land':
+    col1, col2 = st.columns([0.5,0.5])
 
-with col1:
-    st.header("Interactive map")
-    st.write("Click on a station to generate timeserie")
-    # Plot map and get data of last click/zoom/etc
-    st_data = st_folium(main_map, width=500, height=500)
+    with col1:
+        year = st.radio('Pick the year',['2017','2018'])
 
-if st_data['last_object_clicked'] is not None:
-    clicked_lat = st_data['last_object_clicked']['lat']
-    clicked_lon = st_data['last_object_clicked']['lng']
+        start_time, end_time = st.slider("Pick the date range",
+                                         min_value=datetime(1999, 1, 1), 
+                                         max_value=datetime(1999, 12, 31),
+                                         value=(datetime(1999,1,1), datetime(1999,4,1)),
+                                         format="MM/DD")
 
-    clicked_info = df_station_info[(df_station_info['LAT'] == clicked_lat) & (df_station_info['LON'] == clicked_lon)]
-    clicked_id   = clicked_info['NO'].to_list()[0]
-    clicked_name = clicked_info['ID'].to_list()[0]
-    clicked_hourly = clicked_info['DATA.HOURLY'].to_list()[0]
-    clicked_elev   = clicked_info['ELEV'].to_list()[0]
-    if clicked_hourly == 1: clicked_hourly = True
-    else:                   clicked_hourly = False
+        start_time = start_time.replace(year=int(year))
+        end_time   = end_time.replace(year=int(year))
 
+    # Map
     with col2:
-        st.header("Parameters")
-        st.write("Choose the parameters for timeserie")
-
-        year = st.radio('Pick the year',['1996', '2017','2018'])
-        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
-        min_or_max = st.radio('Tmin or Tmax?',['min','max'])
-
-    with col3:
-        st.header("Timeserie")
-
-        fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+        ds = xr.open_dataset('data/map-'+year+'.nc')
+        diff = ds['diff']
+        diff = diff.sel(time=slice(start_time, end_time )) # Chose all hours in current date
+        
+        diff_average = diff.mean(dim="time").to_numpy()
+        
+        lon = ds['lon']
+        lat = ds['lat']
+        
+        # Plot in map
+        fig = plt.figure(figsize=(10,8))
+        ax = fig.add_subplot(1,1,1, projection=crs.PlateCarree())
+        
+        lat_min = 49
+        lat_max = 60
+        lon_min = 360-132
+        lon_max = 360-120
+        ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=crs.PlateCarree())
+        
+        resol = '10m'  # use data at this scale
+        states = NaturalEarthFeature(category="cultural", scale=resol, facecolor="none", name="admin_1_states_provinces_shp")
+        bodr = NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', alpha=0.7)
+        land = NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
+        ocean = NaturalEarthFeature('physical', 'ocean', scale=resol, edgecolor='none', facecolor="none")
+        lakes = NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='b', facecolor="none")
+        rivers = NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='b', facecolor='none')
+        
+        ax.add_feature(land)
+        ax.add_feature(ocean, linewidth=0.2 )
+        ax.add_feature(lakes)
+        ax.add_feature(rivers, linewidth=0.5)
+        ax.add_feature(bodr, linestyle='--', edgecolor='k', alpha=1)
+        
+        levels = [-10, -8, -6, -4, -2, 2, 4, 6, 8, 10]
+        colormap = plt.get_cmap('bwr')
+        norm = mcolors.BoundaryNorm(levels, ncolors=colormap.N, clip=True)
+        
+        cf = ax.pcolormesh(lon, lat, diff_average, transform=crs.PlateCarree(), cmap=colormap, norm=norm)
+        
+        cb = plt.colorbar(cf, orientation='horizontal', pad=0, aspect=50, extendrect=True)
+        cb.set_label('diff TT (C)')
  
-        df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
-        df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
-        st.dataframe(df_elev)
-
-        st.write(fig)
-
-        #st.header("Information")
-        #st.write("Latitude:", clicked_lat)
-        #st.write("Longitude:", clicked_lon)
-        #st.write("Station elevation:", clicked_elev)
-        #st.write("Model elevation:", elevation_rdrs)
-        #st.write("ERA5-land elevation:", elevation_era5)
-
-        #biais_mean = np.nanmean(biais, dtype='float32')
-        #st.write("Biais sur la periode:", biais_mean)
+        plt.title(start_time.strftime("%Y-%m-%d")+" to "+end_time.strftime("%Y-%m-%d") )
+        
+        st.pyplot(fig)
 
