@@ -84,7 +84,7 @@ def find_min_max(df, date_list):
 
     return df_copy
 
-def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type):
+def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type, min_or_max):
     # Dates
     date_debut = year+'-01-02'
     date_fin   = year+'-11-06'
@@ -183,43 +183,39 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     # Plot
     date = df_station['date_from'].to_list()
-    temp_station_min = np.array(df_station['Tmin'].to_list()) 
-    temp_station_max = np.array(df_station['Tmax'].to_list()) 
-    temp_rdrs_min = np.array(df_rdrs['Tmin'].to_list())
-    temp_rdrs_max = np.array(df_rdrs['Tmax'].to_list())
+    temp_station = np.array(df_station[min_or_max].to_list()) 
+    temp_rdrs    = np.array(df_rdrs[min_or_max].to_list())
 
     if era5:
-        temp_era5_min = np.array(df_era5['Tmin'].to_list())
-        temp_era5_max = np.array(df_era5['Tmax'].to_list())
+        temp_era5 = np.array(df_era5[min_or_max].to_list())
 
     if gdrs:
-        temp_gdrs_min = np.array(df_gdrs['Tmin'].to_list())
-        temp_gdrs_max = np.array(df_gdrs['Tmax'].to_list())
+        temp_gdrs = np.array(df_gdrs[min_or_max].to_list())
 
     #biais = (temp_rdrs_max + lapse_rate_rdrs) - temp_station_max
     biais = 0.
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
-    tmax_obs  = ax1.plot(date, temp_station_max, 'k', label='Tmax obs')
-    tmax_rdrs = ax1.plot(date, (temp_rdrs_max + lapse_rate_rdrs), 'b', label='Tmax RDRS')
+    tmax_obs  = ax1.plot(date, temp_station, 'k', label=min_or_max+' obs')
+    tmax_rdrs = ax1.plot(date, (temp_rdrs + lapse_rate_rdrs), 'b', label=min_or_max+' RDRS')
 
     if era5: 
-        tmax_era5 = ax1.plot(date, (temp_era5_max + lapse_rate_era5), 'g', label='Tmax ERA5')
+        tmax_era5 = ax1.plot(date, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = tmax_obs + tmax_rdrs + tmax_era5
     else:
         lns = tmax_obs + tmax_rdrs
 
     if gdrs: 
-        tmax_gdrs = ax1.plot(date, (temp_gdrs_max), 'm', label='Tmax GDRS')
+        tmax_gdrs = ax1.plot(date, (temp_gdrs), 'm', label=min_or_max+' GDRS')
         lns = lns + tmax_gdrs
 
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
-    if not df_rdrs_1stlevel.empty:
-        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel['Tmin'].to_list()), 'c', label='1st level RDRS')
-        lns = lns + tmax_rdrs_1stlevel
+    #if not df_rdrs_1stlevel.empty:
+    #    tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
+    #    lns = lns + tmax_rdrs_1stlevel
 
     if not df_rdrs_sd.empty:
         ax2 = ax1.twinx()
@@ -246,7 +242,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     labs = [l.get_label() for l in lns]
     ax1.legend(lns, labs, bbox_to_anchor=(1.08,1), borderaxespad=0)
 
-    plt.title('Tmax at '+clicked_name)
+    plt.title(min_or_max+' at '+clicked_name)
 
     return fig, elevation_rdrs, elevation_era5, biais
 
@@ -289,12 +285,12 @@ if dataset == 'ECCC network' or dataset == 'BC archive':
     
             year = st.radio('Pick the year',['1996', '2017','2018'])
             lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
-            min_or_max = st.radio('Tmin or Tmax?',['min','max'])
+            min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
     
         with col3:
             st.header("Timeserie")
     
-            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type)
+            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type, min_or_max)
      
             df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
             df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
@@ -308,7 +304,7 @@ elif dataset == 'RDRS - ERA5_land':
     col1, col2 = st.columns([0.5,0.5])
 
     with col1:
-        year = st.radio('Pick the year',['2017','2018'])
+        year = st.radio('Pick the year',['1996','2017','2018'])
 
         start_time, end_time = st.slider("Pick the date range",
                                          min_value=datetime(1999, 1, 1), 
