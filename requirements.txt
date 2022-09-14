@@ -6,3 +6,4 @@ pandas==1.3.5
 streamlit==1.10.0
 streamlit_folium==0.6.13
 xarray==0.20.1
+cartopy==0.18.0
