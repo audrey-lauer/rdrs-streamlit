@@ -101,9 +101,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
 
-    print(df_station_og)
     df_station = find_min_max(df_station_og, date_list)
-    print(df_station)
 
     # RDRS
     df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
@@ -301,7 +299,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive':
 
 
 elif dataset == 'RDRS - ERA5_land':
-    col1, col2 = st.columns([0.5,0.5])
+    col1, col2 = st.columns([0.4,0.6])
 
     with col1:
         year = st.radio('Pick the year',['1996','2017','2018'])
@@ -315,34 +313,102 @@ elif dataset == 'RDRS - ERA5_land':
         start_time = start_time.replace(year=int(year))
         end_time   = end_time.replace(year=int(year))
 
-    # Map
-    with col2:
-        ds = xr.open_dataset('data/map-'+year+'.nc')
-        diff = ds['diff']
+        min_or_max = st.radio('Pick daily min, max or average',['min','max','mean'])
+
+        # Find all files composing the date range
+        month_start = start_time.month
+        month_end   = end_time.month
+        month_range = np.arange(month_start, month_end+1, 1)
+    
+        if month_end < 10:
+            month_range = [ '0'+str(m) for m in month_range ]
+        else:
+            month_temp = []
+            for month in month_range:
+                if month < 10:
+                    month_temp.append('0'+str(month))
+                else:
+                    month_temp.append(str(month))
+            month_range = month_temp
+
+        filename_map_list = [ 'data/map-'+year+m+'.nc' for m in month_range ]
+
+        # Read data
+        for filename_map in filename_map_list:
+            ds_temp = xr.open_dataset(filename_map)
+    
+            if filename_map == filename_map_list[0]:
+                ds = ds_temp
+            else:
+                ds = xr.concat([ds, ds_temp], dim="time")
+
+        # Choose correct variable and date range
+        diff = ds['t'+min_or_max+'_diff']
         diff = diff.sel(time=slice(start_time, end_time )) # Chose all hours in current date
         
         diff_average = diff.mean(dim="time").to_numpy()
         
         lon = ds['lon']
         lat = ds['lat']
-        
+
         # Plot in map
         fig = plt.figure(figsize=(10,8))
         ax = fig.add_subplot(1,1,1, projection=crs.PlateCarree())
-        
-        lat_min = 49
-        lat_max = 60
-        lon_min = 360-132
-        lon_max = 360-120
+
+        lat_min = 46
+        lat_max = 58
+        lon_min = 360-135
+        lon_max = 360-112
         ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=crs.PlateCarree())
-        
+
         resol = '10m'  # use data at this scale
         states = NaturalEarthFeature(category="cultural", scale=resol, facecolor="none", name="admin_1_states_provinces_shp")
         bodr = NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', alpha=0.7)
         land = NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
         ocean = NaturalEarthFeature('physical', 'ocean', scale=resol, edgecolor='none', facecolor="none")
-        lakes = NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='b', facecolor="none")
-        rivers = NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='b', facecolor='none')
+        lakes = NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
+        rivers = NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
+
+        ax.add_feature(land)
+        ax.add_feature(ocean, linewidth=0.2 )
+        ax.add_feature(lakes)
+        ax.add_feature(rivers, linewidth=0.5)
+        ax.add_feature(bodr, linestyle='--', edgecolor='k', alpha=1)
+
+        levels = [-10, -8, -6, -4, -2, 2, 4, 6, 8, 10]
+        colormap = plt.get_cmap('bwr')
+        norm = mcolors.BoundaryNorm(levels, ncolors=colormap.N, clip=True)
+
+        cf = ax.pcolormesh(lon, lat, diff_average, transform=crs.PlateCarree(), cmap=colormap, norm=norm)
+
+        cb = plt.colorbar(cf, orientation='horizontal', pad=0, aspect=50, extendrect=True)
+        cb.set_label('diff TT (C)')
+
+        plt.title(start_time.strftime("%Y-%m-%d")+" to "+end_time.strftime("%Y-%m-%d") )
+
+        st.pyplot(fig)
+
+
+    # Map
+    with col2:
+
+        # Plot in map
+        fig = plt.figure(figsize=(10,8))
+        ax = fig.add_subplot(1,1,1, projection=crs.PlateCarree())
+        
+        lat_min = 20
+        lat_max = 72
+        lon_min = 360-140
+        lon_max = 360-50
+        ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=crs.PlateCarree())
+        
+        resol = '50m'  # use data at this scale
+        states = NaturalEarthFeature(category="cultural", scale=resol, facecolor="none", name="admin_1_states_provinces_shp")
+        bodr = NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale=resol, facecolor='none', alpha=0.7)
+        land = NaturalEarthFeature('physical', 'land', scale=resol, edgecolor='k', facecolor="none")
+        ocean = NaturalEarthFeature('physical', 'ocean', scale=resol, edgecolor='none', facecolor="none")
+        lakes = NaturalEarthFeature('physical', 'lakes', scale=resol, edgecolor='k', facecolor="none")
+        rivers = NaturalEarthFeature('physical', 'rivers_lake_centerlines', scale=resol, edgecolor='k', facecolor='none')
         
         ax.add_feature(land)
         ax.add_feature(ocean, linewidth=0.2 )
