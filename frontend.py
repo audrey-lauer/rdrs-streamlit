@@ -215,23 +215,29 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     #    tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
     #    lns = lns + tmax_rdrs_1stlevel
 
-    if not df_rdrs_sd.empty:
+
+    if not df_station_sd.empty or not df_rdrs_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty:
         ax2 = ax1.twinx()
-        sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--k', label='SD obs')
-        sd_rdrs = ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--b', label='SD RDRS')
         ax2.set_ylabel('Snow depth [cm]')
         ax2.set_ylim([-5,500])
+        if not df_station_sd.empty:
+            sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--k', label='SD obs')
 
-        lns = lns + sd_obs + sd_rdrs
-
+            lns = lns + sd_obs
+ 
+        if not df_rdrs_sd.empty:
+            sd_rdrs = ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--b', label='SD RDRS')
+    
+            lns = lns + sd_rdrs
+    
         if era5 and not df_era5_sd.empty:
             sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd['SD'], '--g', label='SD ERA5')
-
+    
             lns = lns + sd_era5
-
+    
         if gdrs and not df_gdrs_sd.empty:
             sd_gdrs = ax2.plot(df_gdrs_sd['date'],    df_gdrs_sd['SD'], '--m', label='SD GDRS')
-
+    
             lns = lns + sd_gdrs
 
     ax1.grid(True)
@@ -247,15 +253,18 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
 st.write('Hourly stations')
 
-dataset = st.selectbox('Dataset',['ECCC network','BC archive','RDRS - ERA5_land'])
+dataset = st.selectbox('Dataset',['ECCC network','BC archive','Wood','RDRS - ERA5_land'])
 
-if dataset == 'ECCC network' or dataset == 'BC archive':
+if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
     if dataset == 'ECCC network':
         df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
     elif dataset == 'BC archive':
         df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
-    main_map = make_map(df_station_info, 'DATA.BIAIS_2017')
+    elif dataset == 'Wood':
+        df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
+
+    main_map = make_map(df_station_info, 'DATA.BIAIS')
     
     col1, col2, col3 = st.columns([0.7,0.3,1])
     
@@ -281,7 +290,15 @@ if dataset == 'ECCC network' or dataset == 'BC archive':
             st.header("Parameters")
             st.write("Choose the parameters for timeserie")
     
-            year = st.radio('Pick the year',['1996', '2017','2018'])
+            if dataset == 'ECCC network':
+                year = st.radio('Pick the year',['1990','1996', '2017','2018'])
+            elif dataset == 'BC archive':
+                year = st.radio('Pick the year',['2017','2018'])
+            elif dataset == 'Wood':
+                year = st.radio('Pick the year',['2005','2006', '2007','2008','2009','2010'])
+            else:
+                year = st.radio('Pick the year',['1990','1996', '2017','2018'])
+
             lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
             min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
     
