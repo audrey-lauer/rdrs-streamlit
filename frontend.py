@@ -112,12 +112,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_rdrs = df_rdrs.drop_duplicates(subset='date')
     elevation_rdrs = df_rdrs['elev'].loc[0]
 
-    #try:
-    #    df_rdrs_1stlevel = pd.read_pickle("data/"+clicked_id+"-RDRS-1st-level.pkl")
-    #    df_rdrs_1stlevel = df_rdrs.drop_duplicates(subset='date')
-    #except:
-    #    df_rdrs_1stlevel = pd.DataFrame()
-
     df_rdrs_sd = pd.DataFrame()
     if 'SD' in df_rdrs.columns:
         df_rdrs_sd['date'] = df_rdrs['date']
@@ -127,8 +121,15 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     df_rdrs = find_min_max(df_rdrs, date_list)
 
-    #if not df_rdrs_1stlevel.empty:
-    #    df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
+    try:
+        df_rdrs_1stlevel = pd.read_pickle("data/"+clicked_id+"-RDRSv"+version+"-firstlevel.pkl")
+        df_rdrs_1stlevel = df_rdrs_1stlevel.drop_duplicates(subset='date')
+        firstlevel = True
+    except:
+        firstlevel = False
+
+    if firstlevel:
+        df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
@@ -221,10 +222,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
-    #if not df_rdrs_1stlevel.empty:
-    #    tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
-    #    lns = lns + tmax_rdrs_1stlevel
-
+    if firstlevel:
+        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
+        lns = lns + tmax_rdrs_1stlevel
 
     if not df_station_sd.empty or not df_rdrs_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty:
         ax2 = ax1.twinx()
