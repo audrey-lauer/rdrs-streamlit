@@ -31,7 +31,8 @@ st.set_page_config(layout="wide")
 @st.cache(hash_funcs={folium.folium.Map: lambda _: None}, allow_output_mutation=True)
 def make_map(df_station_info, field_to_color_by):
     main_map = folium.Map(location=(52, -121), zoom_start=5)
-    colormap = linear.RdYlGn_07.scale(-6,0)
+    colormap = linear.RdYlBu_11.scale(-5,5)
+    colormap.caption = 'Yearly bias'
     colormap.add_to(main_map)
 
     for i in df_station_info.index:
@@ -41,6 +42,8 @@ def make_map(df_station_info, field_to_color_by):
         name = df_station_info['ID'].loc[i]
 
         if np.isnan( df_station_info[field_to_color_by].loc[i] ):
+            continue
+        elif df_station_info[field_to_color_by].loc[i] < -900:
             continue
         else:
             icon_color = colormap(df_station_info[field_to_color_by].loc[i])
@@ -84,10 +87,13 @@ def find_min_max(df, date_list):
 
     return df_copy
 
-def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type, min_or_max):
+def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version):
     # Dates
     date_debut = year+'-01-02'
-    date_fin   = year+'-11-06'
+    if version == '3TEST':
+        date_fin   = year+'-06-01'
+    else:
+        date_fin   = year+'-11-06'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -104,15 +110,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     df_station = find_min_max(df_station_og, date_list)
 
     # RDRS
-    df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRS.pkl")
+    df_rdrs = pd.read_pickle("data/"+clicked_id+"-RDRSv"+version+".pkl")
+
     df_rdrs = df_rdrs.drop_duplicates(subset='date')
     elevation_rdrs = df_rdrs['elev'].loc[0]
 
-    try:
-        df_rdrs_1stlevel = pd.read_pickle("data/"+clicked_id+"-RDRS-1st-level.pkl")
-        df_rdrs_1stlevel = df_rdrs.drop_duplicates(subset='date')
-    except:
-        df_rdrs_1stlevel = pd.DataFrame()
+    #try:
+    #    df_rdrs_1stlevel = pd.read_pickle("data/"+clicked_id+"-RDRS-1st-level.pkl")
+    #    df_rdrs_1stlevel = df_rdrs.drop_duplicates(subset='date')
+    #except:
+    #    df_rdrs_1stlevel = pd.DataFrame()
 
     df_rdrs_sd = pd.DataFrame()
     if 'SD' in df_rdrs.columns:
@@ -123,8 +130,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     df_rdrs = find_min_max(df_rdrs, date_list)
 
-    if not df_rdrs_1stlevel.empty:
-        df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
+    #if not df_rdrs_1stlevel.empty:
+    #    df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
@@ -150,6 +157,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
         lapse_rate_era5 = np.array(lapse_rate_era5)
 
         era5 = True
+
+        if df_era5.empty:
+            elevation_era5 = 0.
+            era5 = False
 
     except:
         elevation_era5 = 0.
@@ -179,6 +190,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
     except:
         gdrs = False
 
+    gdrs = False
+    
     # Plot
     date = df_station['date_from'].to_list()
     temp_station = np.array(df_station[min_or_max].to_list()) 
@@ -250,12 +263,41 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev,
 
     return fig, elevation_rdrs, elevation_era5, biais
 
+########
+# Page #
+########
+st.write('Investigation of temperature bias in BC')
 
-st.write('Hourly stations')
-
-dataset = st.selectbox('Dataset',['ECCC network','BC archive','Wood','RDRS - ERA5_land'])
+dataset = st.selectbox('Observation dataset',['ECCC network','BC archive','Wood','RDRS - ERA5_land'])
 
 if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
+
+    # 3 columns
+    # 1st column: map
+    # 2nd column: parameters
+    # 3rd column: timeserie
+    col1, col2, col3 = st.columns([0.3,0.7,1])
+
+    with col1:
+        st.header("Parameters")
+        st.write("Choose the parameters for timeserie")
+
+        version = st.radio('Pick the RDRS version',['02P1','3TEST'])
+
+        if dataset == 'ECCC network':
+            if version == '02P1':
+                year = st.radio('Pick the year',['2014','2015'])
+            elif version == '3TEST':
+                year = st.radio('Pick the year',['2014'])
+        elif dataset == 'BC archive':
+            year = st.radio('Pick the year',['2017','2018'])
+        elif dataset == 'Wood':
+            year = st.radio('Pick the year',['2005','2006', '2007','2008','2009','2010'])
+        else:
+            year = st.radio('Pick the year',['1990','1996', '2017','2018'])
+
+        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
+        min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
 
     if dataset == 'ECCC network':
         df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
@@ -264,11 +306,9 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
     elif dataset == 'Wood':
         df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
 
-    main_map = make_map(df_station_info, 'DATA.BIAIS')
-    
-    col1, col2, col3 = st.columns([0.7,0.3,1])
-    
-    with col1:
+    main_map = make_map(df_station_info, 'DATA.BIAIS_'+year+'_v'+version)
+
+    with col2:
         st.header("Interactive map")
         st.write("Click on a station to generate timeserie")
         # Plot map and get data of last click/zoom/etc
@@ -281,31 +321,12 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         clicked_info = df_station_info[(df_station_info['LAT'] == clicked_lat) & (df_station_info['LON'] == clicked_lon)]
         clicked_id   = clicked_info['NO'].to_list()[0]
         clicked_name = clicked_info['ID'].to_list()[0]
-        clicked_hourly = clicked_info['DATA.HOURLY'].to_list()[0]
         clicked_elev   = clicked_info['ELEV'].to_list()[0]
-        if clicked_hourly == 1: clicked_hourly = True
-        else:                   clicked_hourly = False
-    
-        with col2:
-            st.header("Parameters")
-            st.write("Choose the parameters for timeserie")
-    
-            if dataset == 'ECCC network':
-                year = st.radio('Pick the year',['1990','1996', '2017','2018'])
-            elif dataset == 'BC archive':
-                year = st.radio('Pick the year',['2017','2018'])
-            elif dataset == 'Wood':
-                year = st.radio('Pick the year',['2005','2006', '2007','2008','2009','2010'])
-            else:
-                year = st.radio('Pick the year',['1990','1996', '2017','2018'])
-
-            lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
-            min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
     
         with col3:
             st.header("Timeserie")
     
-            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_hourly, clicked_elev, lapse_type, min_or_max)
+            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version)
      
             df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
             df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
