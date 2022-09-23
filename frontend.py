@@ -260,7 +260,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 ########
 st.write('Investigation of temperature bias in BC')
 
-dataset = st.selectbox('Observation dataset',['ECCC network','BC archive','Wood','RDRS - ERA5_land'])
+dataset = st.selectbox('Observation dataset',['ECCC network'])
+#dataset = st.selectbox('Observation dataset',['ECCC network','BC archive','Wood','RDRS - ERA5_land'])
 
 if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
