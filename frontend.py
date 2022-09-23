@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-from datetime import datetime, timedelta
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import RendererAgg
@@ -11,8 +10,6 @@ from streamlit_folium import folium_static, st_folium
 import folium
 from branca.colormap import linear, LinearColormap
 from backend import add_lapse_rate#, find_min_max
-from shapely.geometry import Point, Polygon
-import geopandas as gpd
 
 matplotlib.use("agg")
 _lock = RendererAgg.lock
@@ -281,9 +278,11 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
         if dataset == 'ECCC network':
             if version == '02P1':
-                year = st.radio('Pick the year',['2014','2015'])
+                year = st.slider('Pick the year', 1990, 2018)
+                year = str(year)
             elif version == '3TEST':
-                year = st.radio('Pick the year',['2014'])
+                year = st.slider('Pick the year', 2014, 2015)
+                year = str(year)
         elif dataset == 'BC archive':
             year = st.radio('Pick the year',['2017','2018'])
         elif dataset == 'Wood':
