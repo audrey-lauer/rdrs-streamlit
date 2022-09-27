@@ -83,9 +83,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     date_debut = year+'-01-02'
     if version == '3TEST':
-        date_fin   = year+'-09-01'
+        date_fin   = year+'-12-14'
     else:
-        date_fin   = year+'-11-06'
+        date_fin   = year+'-12-14'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
