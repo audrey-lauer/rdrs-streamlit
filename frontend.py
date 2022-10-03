@@ -79,7 +79,7 @@ def find_min_max(df, date_list):
 
     return df_copy
 
-def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version):
+def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, sd_or_gradTT):
     # Dates
     date_debut = year+'-01-02'
     if version == '3TEST':
@@ -92,12 +92,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_station_og = pd.read_pickle("data/"+clicked_id+"-station.pkl")
 
     df_station_sd = pd.DataFrame()
-    if 'SD' in df_station_og.columns:
+    if sd_or_gradTT in df_station_og.columns:
         df_station_sd['date'] = df_station_og['date']
-        df_station_sd['SD']   = df_station_og['SD']
+        df_station_sd[sd_or_gradTT]   = df_station_og[sd_or_gradTT]
         mask = (df_station_sd['date'] > date_debut) & (df_station_sd['date'] <= date_fin)
         df_station_sd = df_station_sd.loc[mask]
-        df_station_sd = df_station_sd[df_station_sd['SD'].notna()]
+        df_station_sd = df_station_sd[df_station_sd[sd_or_gradTT].notna()]
 
     df_station = find_min_max(df_station_og, date_list)
 
@@ -108,9 +108,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     elevation_rdrs = df_rdrs['elev'].loc[0]
 
     df_rdrs_sd = pd.DataFrame()
-    if 'SD' in df_rdrs.columns:
+    if sd_or_gradTT in df_rdrs.columns:
         df_rdrs_sd['date'] = df_rdrs['date']
-        df_rdrs_sd['SD']   = df_rdrs['SD']
+        df_rdrs_sd[sd_or_gradTT]   = df_rdrs[sd_or_gradTT]
         mask = (df_rdrs_sd['date'] > date_debut) & (df_rdrs_sd['date'] <= date_fin)
         df_rdrs_sd = df_rdrs_sd.loc[mask]
 
@@ -136,12 +136,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         elevation_era5 = df_era5['elev'].iloc[0]
 
         df_era5_sd = pd.DataFrame()
-        if 'SD' in df_era5.columns:
+        if sd_or_gradTT in df_era5.columns:
             df_era5_sd['date'] = df_era5['date']
-            df_era5_sd['SD']   = df_era5['SD']
+            df_era5_sd[sd_or_gradTT]   = df_era5[sd_or_gradTT]
             mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
             df_era5_sd = df_era5_sd.loc[mask]
-            df_era5_sd = df_era5_sd[df_era5_sd['SD'].notna()]
+            df_era5_sd = df_era5_sd[df_era5_sd[sd_or_gradTT].notna()]
 
         df_era5 = find_min_max(df_era5, date_list)
 
@@ -161,16 +161,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     # GDRS
     try:
-        df_gdrs = pd.read_pickle("data/"+clicked_id+"-GDRS.pkl")
+        df_gdrs = pd.read_pickle("data/"+clicked_id+"-GDRSv"+version+".pkl")
         df_gdrs = df_gdrs.drop_duplicates(subset='date')
 
         df_gdrs_sd = pd.DataFrame()
-        if 'SD' in df_gdrs.columns:
+        if sd_or_gradTT in df_gdrs.columns:
             df_gdrs_sd['date'] = df_gdrs['date']
-            df_gdrs_sd['SD']   = df_gdrs['SD']
+            df_gdrs_sd[sd_or_gradTT]   = df_gdrs[sd_or_gradTT]
             mask = (df_gdrs_sd['date'] > date_debut) & (df_gdrs_sd['date'] <= date_fin)
             df_gdrs_sd = df_gdrs_sd.loc[mask]
-            df_gdrs_sd = df_gdrs_sd[df_gdrs_sd['SD'].notna()]
+            df_gdrs_sd = df_gdrs_sd[df_gdrs_sd[sd_or_gradTT].notna()]
 
         df_gdrs = find_min_max(df_gdrs, date_list)
 
@@ -183,8 +183,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     except:
         gdrs = False
 
-    gdrs = False
-    
     # Plot
     date = df_station['date_from'].to_list()
     temp_station = np.array(df_station[min_or_max].to_list()) 
@@ -223,25 +221,29 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     if not df_station_sd.empty or not df_rdrs_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty:
         ax2 = ax1.twinx()
-        ax2.set_ylabel('Snow depth [cm]')
-        ax2.set_ylim([-5,500])
+        if sd_or_gradTT == 'SD':
+            ax2.set_ylabel('Snow depth [cm]')
+            ax2.set_ylim([-5,500])
+        elif sd_or_gradTT == 'gradTT':
+            ax2.set_ylabel('grad TT [K/m]')
+            ax2.set_ylim([-1.5,5.5])
         if not df_station_sd.empty:
-            sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--k', label='SD obs')
+            sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k', label=sd_or_gradTT+' obs')
 
             lns = lns + sd_obs
  
         if not df_rdrs_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd['SD'], '--b', label='SD RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_sd['date'],    df_rdrs_sd[sd_or_gradTT], '--b', label=sd_or_gradTT+' RDRS')
     
             lns = lns + sd_rdrs
     
         if era5 and not df_era5_sd.empty:
-            sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd['SD'], '--g', label='SD ERA5')
+            sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g', label=sd_or_gradTT+' ERA5')
     
             lns = lns + sd_era5
     
         if gdrs and not df_gdrs_sd.empty:
-            sd_gdrs = ax2.plot(df_gdrs_sd['date'],    df_gdrs_sd['SD'], '--m', label='SD GDRS')
+            sd_gdrs = ax2.plot(df_gdrs_sd['date'],    df_gdrs_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' GDRS')
     
             lns = lns + sd_gdrs
 
@@ -293,6 +295,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
         lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
         min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
+        sd_or_gradTT = st.radio('SD or gradient?',['SD','gradTT'])
 
     if dataset == 'ECCC network':
         df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
@@ -321,7 +324,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         with col3:
             st.header("Timeserie")
     
-            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version)
+            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, sd_or_gradTT)
      
             df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
             df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
