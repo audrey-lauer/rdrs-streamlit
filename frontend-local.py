@@ -340,7 +340,7 @@ elif dataset == 'RDRS - ERA5_land':
     col1, col2 = st.columns([0.4,0.6])
 
     with col1:
-        year = st.radio('Pick the year',['1996','2017','2018'])
+        year = st.radio('Pick the year',['1996','2014','2017','2018'])
 
         start_time, end_time = st.slider("Pick the date range",
                                          min_value=datetime(1999, 1, 1), 
@@ -352,6 +352,7 @@ elif dataset == 'RDRS - ERA5_land':
         end_time   = end_time.replace(year=int(year))
 
         min_or_max = st.radio('Pick daily min, max or average',['min','max','mean'])
+        version = st.radio('Pick version',['02P1','3TEST'])
 
         # Find all files composing the date range
         month_start = start_time.month
@@ -369,7 +370,7 @@ elif dataset == 'RDRS - ERA5_land':
                     month_temp.append(str(month))
             month_range = month_temp
 
-        filename_map_list = [ 'data/map-'+year+m+'.nc' for m in month_range ]
+        filename_map_list = [ 'data/map-'+version+'-'+year+m+'.nc' for m in month_range ]
 
         # Read data
         for filename_map in filename_map_list:
