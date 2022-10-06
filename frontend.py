@@ -130,6 +130,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     if firstlevel:
         df_rdrs_1stlevel = find_min_max(df_rdrs_1stlevel, date_list)
+        if df_rdrs_1stlevel.empty:
+            firstlevel = False
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
