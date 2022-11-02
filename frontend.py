@@ -11,13 +11,13 @@ import folium
 from branca.colormap import linear, LinearColormap
 from backend import add_lapse_rate#, find_min_max
 
-#import matplotlib.pylab as pylab
-#params = {'legend.fontsize': 'medium',
-#         'axes.labelsize':'large',
-#         #'axes.titlesize':'large',
-#         'xtick.labelsize': 'large',
-#         'ytick.labelsize': 'large'}
-#pylab.rcParams.update(params)
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 'medium',
+         'axes.labelsize':'large',
+         #'axes.titlesize':'large',
+         'xtick.labelsize': 'large',
+         'ytick.labelsize': 'large'}
+pylab.rcParams.update(params)
 
 matplotlib.use("agg")
 _lock = RendererAgg.lock
