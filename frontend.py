@@ -238,6 +238,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     fig, ax1 = plt.subplots(figsize=(10,5))
 
+    lns = []
     if station: 
         tmax_obs  = ax1.plot(date, temp_station, 'k', label=min_or_max+' obs')
         lns = tmax_obs
@@ -245,6 +246,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     if rdrs_02p1:
         tmax_rdrs_02p1 = ax1.plot(date, (temp_rdrs_02p1 + lapse_rate_rdrs), 'b', label=min_or_max+' RDRS v2.1')
         lns = lns + tmax_rdrs_02p1
+        print(lns)
 
     if rdrs_03test:
         tmax_rdrs_03test = ax1.plot(date, (temp_rdrs_03test + lapse_rate_rdrs), 'r', label=min_or_max+' RDRS v3')
