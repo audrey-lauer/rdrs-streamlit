@@ -218,16 +218,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         tmax_era5 = ax1.plot(date, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
 
-    if gdrs: 
-        tmax_gdrs = ax1.plot(date, (temp_gdrs), 'm', label=min_or_max+' GDRS')
-        lns = lns + tmax_gdrs
+    #if gdrs: 
+    #    tmax_gdrs = ax1.plot(date, (temp_gdrs), 'm', label=min_or_max+' GDRS')
+    #    lns = lns + tmax_gdrs
 
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
 
-    if firstlevel:
-        tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
-        lns = lns + tmax_rdrs_1stlevel
+    #if firstlevel:
+    #    tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
+    #    lns = lns + tmax_rdrs_1stlevel
 
     if not df_station_sd.empty or not df_rdrs_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty:
         ax2 = ax1.twinx()
