@@ -11,6 +11,14 @@ import folium
 from branca.colormap import linear, LinearColormap
 from backend import add_lapse_rate#, find_min_max
 
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 'medium',
+         'axes.labelsize':'large',
+         #'axes.titlesize':'large',
+         'xtick.labelsize': 'large',
+         'ytick.labelsize': 'large'}
+pylab.rcParams.update(params)
+
 matplotlib.use("agg")
 _lock = RendererAgg.lock
 
@@ -261,7 +269,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     # added these three lines
     labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs, bbox_to_anchor=(1.08,1), borderaxespad=0)
+    ax1.legend(lns, labs, bbox_to_anchor=(0.02,1), borderaxespad=0, loc='upper left')
 
     plt.title(min_or_max+' at '+clicked_name)
 
