@@ -328,12 +328,12 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
         #version = st.radio('Pick the RDRS version',['02P1','3TEST'])
         st.caption("Pick the RDRS version")
-        version_02p1   = st.checkbox('O2P1')
-        version_03test = st.checkbox('3TEST')
+        version_02p1   = st.checkbox('RDRS v2.1')
+        version_03test = st.checkbox('RDRS v3')
 
         version = []
-        if version_02p1: version.append('RDRS v2.1')
-        if version_03test: version.append('RDRS v3')
+        if version_02p1: version.append('02P1')
+        if version_03test: version.append('3TEST')
 
         if dataset == 'ECCC network':
             if '02P1' in version:
