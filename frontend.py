@@ -342,7 +342,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
                 year = st.slider('Pick the year', 1990, 2018)
                 year = str(year)
             else:
-                year = st.slider('Pick the year', 2014, 2015)
+                year = st.slider('Pick the year', 1992, 2014)
                 year = str(year)
         elif dataset == 'BC archive':
             year = st.radio('Pick the year',['2017','2018'])
@@ -362,7 +362,8 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
     elif dataset == 'Wood':
         df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
 
-    main_map = make_map(df_station_info, 'DATA.BIAIS_'+year+'_v'+version[0])
+    #main_map = make_map(df_station_info, 'DATA.BIAIS_'+year+'_v'+version[0])
+    main_map = make_map(df_station_info, 'DATA.BIAIS_2014'+'_v'+version[0])
 
     with col2:
         st.header("Interactive map")
