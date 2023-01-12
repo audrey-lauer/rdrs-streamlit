@@ -87,7 +87,130 @@ def find_min_max(df, date_list):
 
     return df_copy
 
-def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, sd_or_gradTT):
+def find_month(month):
+    if month == 'January':     month_number = 1
+    elif month == 'Febuary':   month_number = 2
+    elif month == 'March':     month_number = 3
+    elif month == 'April':     month_number = 4
+    elif month == 'May':       month_number = 5
+    elif month == 'June':      month_number = 6
+    elif month == 'July':      month_number = 7
+    elif month == 'August':    month_number = 8
+    elif month == 'September': month_number = 9
+    elif month == 'October':   month_number = 10
+    elif month == 'November':  month_number = 11
+    elif month == 'December':  month_number = 12
+
+    return month_number
+
+def make_diurnal_cycle(year, clicked_id, clicked_name, version, month_name, hour_range):
+
+    month = find_month(month_name)
+
+    date_debut = year+'-01-02'
+    date_fin   = year+'-12-14'
+    date_list = pd.date_range(start=date_debut, end=date_fin)
+
+    fig, ax = plt.subplots(1, figsize=(10,5))
+    lns = []
+
+    # Observations
+    df_station = pd.read_pickle("data/"+clicked_id+"-station.pkl")
+    mask = (df_station['date'] > date_debut) & (df_station['date'] <= date_fin)
+    df_station = df_station.loc[mask]
+    df_station = find_min_max(df_station, date_list)
+
+    if df_station.empty:
+        station = False
+    else:
+        station = True
+
+    # RDRS v2.1
+    rdrs_02p1 = False
+    if '02P1' in version:
+        try:
+            df_rdrs_02p1 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv02P1.pkl")
+            df_rdrs_0p21 = df_rdrs_02p1.drop_duplicates(subset='date')
+
+            mask = (df_rdrs_02p1['date'] > date_debut) & (df_rdrs_02p1['date'] <= date_fin)
+            df_rdrs_02p1 = df_rdrs_02p1.loc[mask]
+
+            df_rdrs_02p1 = df_rdrs_02p1.set_index('date')
+            df_rdrs_02p1['month'] = df_rdrs_02p1.index.month
+            df_rdrs_02p1['time']  = df_rdrs_02p1.index.time
+
+            df_month = df_rdrs_02p1.loc[df_rdrs_02p1['month'] == month]
+            df_month = df_month.groupby('time').describe()
+
+            tt_rdrs_02p1 = ax.plot(df_month.index, df_month['TT']['mean'], '-b', linewidth=2.0, label='RDRS v2.1')
+            ax.plot(df_month.index, df_month['TT']['mean'], '.b')
+            lns = lns + tt_rdrs_02p1
+
+            rdrs_02p1 = True
+
+        except:
+            rdrs_02p1 = False
+
+    # RDRS v3
+    rdrs_02p1 = False
+    if '3TEST' in version:
+        try:
+            df_rdrs_3test = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3TEST.pkl")
+            df_rdrs_3test = df_rdrs_3test.drop_duplicates(subset='date')
+
+            mask = (df_rdrs_3test['date'] > date_debut) & (df_rdrs_3test['date'] <= date_fin)
+            df_rdrs_3test = df_rdrs_3test.loc[mask]
+
+            df_rdrs_3test = df_rdrs_3test.set_index('date')
+            df_rdrs_3test['month'] = df_rdrs_3test.index.month
+            df_rdrs_3test['time']  = df_rdrs_3test.index.time
+
+            df_month = df_rdrs_3test.loc[df_rdrs_3test['month'] == month]
+            df_month = df_month.groupby('time').describe()
+
+            tt_rdrs_3test = ax.plot(df_month.index, df_month['TT']['mean'], '-r', linewidth=2.0, label='RDRS v3')
+            ax.plot(df_month.index, df_month['TT']['mean'], '.r')
+            lns = lns + tt_rdrs_3test
+
+            rdrs_02p1 = True
+
+        except:
+            rdrs_02p1 = False
+
+    #if station:
+    #    df_station['month'] = df_station.index.month
+    #    df_month_station = df_station.loc[df_station['month'] == month]
+    #
+    #    tmax_average = np.mean(df_month_station['Tmax'].to_numpy())
+    #    tmax_average = np.ones(24) * tmax_average
+    #    tmin_average = np.mean(df_month_station['Tmin'].to_numpy())
+    #    tmin_average = np.ones(24) * tmin_average
+    #
+    #    tt_obs = ax.plot(df_month.index, tmax_average, '-k', linewidth=3.0, label='obs')
+    #    tt_obs = ax.plot(df_month.index, tmin_average, '-k', linewidth=3.0, label='obs')
+
+    #    lns = tt_obs
+
+    ax.grid(True)
+
+    # added these three lines
+    labs = [l.get_label() for l in lns]
+    ax.legend(lns, labs, bbox_to_anchor=(0.02,1), borderaxespad=0, loc='upper left')
+
+    ax.set_xticks(df_month.index)
+    ax.set_xticklabels(['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'])
+
+    plt.title('Diurnal cycle at '+clicked_name+' - '+month_name)
+
+    return fig
+
+
+
+
+def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range):
+
+    sd_or_gradTT = 'SD'
+
     # Dates
     date_debut = year+'-01-02'
     date_fin   = year+'-12-14'
@@ -116,7 +239,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_rdrs_02p1_sd = pd.DataFrame()
     if '02P1' in version:
         try:
-            df_rdrs_02p1 = pd.read_pickle("data/"+clicked_id+"-RDRSv02P1.pkl")
+            df_rdrs_02p1 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv02P1.pkl")
     
             df_rdrs_0p21 = df_rdrs_02p1.drop_duplicates(subset='date')
             elevation_rdrs = df_rdrs_02p1['elev'].loc[0]
@@ -140,7 +263,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_rdrs_03test_sd = pd.DataFrame()
     if '3TEST' in version:
         try:
-            df_rdrs_03test = pd.read_pickle("data/"+clicked_id+"-RDRSv3TEST.pkl")
+            df_rdrs_03test = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3TEST.pkl")
 
             df_rdrs_0p21 = df_rdrs_03test.drop_duplicates(subset='date')
             elevation_rdrs = df_rdrs_03test['elev'].loc[0]
@@ -194,7 +317,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     # GDRS
     try:
-        df_gdrs = pd.read_pickle("data/"+clicked_id+"-GDRSv"+version+".pkl")
+        df_gdrs = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-GDRSv"+version+".pkl")
         df_gdrs = df_gdrs.drop_duplicates(subset='date')
 
         df_gdrs_sd = pd.DataFrame()
@@ -351,9 +474,13 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         else:
             year = st.radio('Pick the year',['1990','1996', '2017','2018'])
 
-        lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
-        min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
-        sd_or_gradTT = st.radio('SD or gradient?',['SD','gradTT'])
+        timeserie_or_diurnal = st.radio('Timeserie or diurnal cycle?',['timeserie','diurnal cycle'])
+        hour_range = st.radio('Hours?',['06-17','12-23'])
+
+        if timeserie_or_diurnal == 'timeserie':
+            lapse_type = st.radio('Lapse rate type',['none','fixed','Stahl'])
+            min_or_max = st.radio('Tmin or Tmax?',['Tmin','Tmax'])
+            #sd_or_gradTT = st.radio('SD or gradient?',['SD','gradTT'])
 
     if dataset == 'ECCC network':
         df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
@@ -383,11 +510,19 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         with col3:
             st.header("Timeserie")
     
-            fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, sd_or_gradTT)
+            if timeserie_or_diurnal == 'timeserie':
+                fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
      
-            df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
-            df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
-            st.dataframe(df_elev)
-    
-            st.write(fig)
+                df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
+                df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
+                st.dataframe(df_elev)
+
+                st.write(fig)
+
+            elif timeserie_or_diurnal == 'diurnal cycle':
+
+                month = st.selectbox('Month',['January','Febuary','March','April','May','June','July','August','September','October','November','December','DJF','MAM','JJA','SON'])
+                fig   = make_diurnal_cycle(year, clicked_id, clicked_name, version, month, hour_range)
+           
+                st.write(fig)
 
