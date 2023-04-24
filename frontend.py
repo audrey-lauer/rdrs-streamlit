@@ -265,7 +265,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         try:
             df_rdrs_03test = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3TEST.pkl")
 
-            df_rdrs_0p21 = df_rdrs_03test.drop_duplicates(subset='date')
+            df_rdrs_03test = df_rdrs_03test.drop_duplicates(subset='date')
             elevation_rdrs = df_rdrs_03test['elev'].loc[0]
 
             df_rdrs_03test_sd = pd.DataFrame()
@@ -281,6 +281,30 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
         except:
             rdrs_03test = False
+
+    # RDRS v3
+    rdrs_03Lmin = False
+    df_rdrs_03Lmin_sd = pd.DataFrame()
+    if '3Lmin' in version:
+        try:
+            df_rdrs_03Lmin = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3Lmin.pkl")
+
+            df_rdrs_03Lmin = df_rdrs_03Lmin.drop_duplicates(subset='date')
+            elevation_rdrs = df_rdrs_03Lmin['elev'].loc[0]
+
+            df_rdrs_03Lmin_sd = pd.DataFrame()
+            if sd_or_gradTT in df_rdrs_03Lmin.columns:
+                df_rdrs_03Lmin_sd['date'] = df_rdrs_03Lmin['date']
+                df_rdrs_03Lmin_sd[sd_or_gradTT]   = df_rdrs_03Lmin[sd_or_gradTT]
+                mask = (df_rdrs_03Lmin_sd['date'] > date_debut) & (df_rdrs_03Lmin_sd['date'] <= date_fin)
+                df_rdrs_03Lmin_sd = df_rdrs_03Lmin_sd.loc[mask]
+
+            df_rdrs_03Lmin = find_min_max(df_rdrs_03Lmin, date_list)
+
+            rdrs_03Lmin = True
+
+        except:
+            rdrs_03Lmin = False
 
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
@@ -350,6 +374,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         date = df_rdrs_03test['date_from'].to_list()
         temp_rdrs_03test = np.array(df_rdrs_03test[min_or_max].to_list())
 
+    if rdrs_03Lmin:
+        date = df_rdrs_03Lmin['date_from'].to_list()
+        temp_rdrs_03Lmin = np.array(df_rdrs_03Lmin[min_or_max].to_list())
+
     if era5:
         temp_era5 = np.array(df_era5[min_or_max].to_list())
 
@@ -375,6 +403,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         tmax_rdrs_03test = ax1.plot(date, (temp_rdrs_03test + lapse_rate_rdrs), 'r', label=min_or_max+' RDRS v3')
         lns = lns + tmax_rdrs_03test
 
+    if rdrs_03Lmin:
+        tmax_rdrs_03Lmin = ax1.plot(date, (temp_rdrs_03Lmin + lapse_rate_rdrs), 'm', label=min_or_max+' RDRS v3')
+        lns = lns + tmax_rdrs_03Lmin
+
     if era5: 
         tmax_era5 = ax1.plot(date, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
@@ -390,7 +422,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     #    tmax_rdrs_1stlevel = ax1.plot(date, np.array(df_rdrs_1stlevel[min_or_max].to_list()), 'c', label='1st level RDRS')
     #    lns = lns + tmax_rdrs_1stlevel
 
-    if not df_station_sd.empty or not df_rdrs_02p1_sd.empty or not df_rdrs_03test_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty:
+    if not df_station_sd.empty or not df_rdrs_02p1_sd.empty or not df_rdrs_03test_sd.empty or not df_era5_sd.empty or not df_gdrs_sd.empty or not df_rdrs_03Lmin_sd.empty:
         ax2 = ax1.twinx()
         sd = ax2.plot([], [], '--', color='gray', label="SD")
         lns = lns + sd
@@ -413,6 +445,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             sd_rdrs = ax2.plot(df_rdrs_03test_sd['date'],    df_rdrs_03test_sd[sd_or_gradTT], '--r', label=sd_or_gradTT+' RDRS')
             #lns = lns + sd_rdrs
     
+        if not df_rdrs_03Lmin_sd.empty:
+            sd_rdrs = ax2.plot(df_rdrs_03Lmin_sd['date'],    df_rdrs_03Lmin_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+
         if era5 and not df_era5_sd.empty:
             sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g', label=sd_or_gradTT+' ERA5')
             #lns = lns + sd_era5
@@ -455,10 +490,12 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         st.caption("Pick the RDRS version")
         version_02p1   = st.checkbox('RDRS v2.1')
         version_03test = st.checkbox('RDRS v3')
+        version_03Lmin = st.checkbox('RDRS v3 Lmin')
 
         version = []
         if version_02p1: version.append('02P1')
         if version_03test: version.append('3TEST')
+        if version_03Lmin: version.append('3Lmin')
 
         if dataset == 'ECCC network':
             if '02P1' in version:

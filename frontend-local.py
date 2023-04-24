@@ -19,6 +19,14 @@ from backend import add_lapse_rate#, find_min_max
 from shapely.geometry import Point, Polygon
 import geopandas as gpd
 
+import matplotlib.pylab as pylab
+params = {'legend.fontsize': 'x-large',
+         'axes.labelsize':'xx-large',
+         'axes.titlesize':'xx-large',
+         'xtick.labelsize': 'xx-large',
+         'ytick.labelsize': 'x-large'}
+pylab.rcParams.update(params)
+
 matplotlib.use("agg")
 _lock = RendererAgg.lock
 
