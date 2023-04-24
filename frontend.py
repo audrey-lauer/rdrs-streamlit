@@ -404,7 +404,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = lns + tmax_rdrs_03test
 
     if rdrs_03Lmin:
-        tmax_rdrs_03Lmin = ax1.plot(date, (temp_rdrs_03Lmin + lapse_rate_rdrs), 'm', label=min_or_max+' RDRS v3')
+        tmax_rdrs_03Lmin = ax1.plot(date, (temp_rdrs_03Lmin + lapse_rate_rdrs), 'm', label=min_or_max+' RDRS v3Lmin')
         lns = lns + tmax_rdrs_03Lmin
 
     if era5: 
