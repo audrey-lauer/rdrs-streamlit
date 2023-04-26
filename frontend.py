@@ -529,10 +529,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_03Lmin = st.checkbox('RDRS v3 Lmin')
 
         version = []
-        if version_01: version.append('v1')
         if version_02p1: version.append('02P1')
         if version_03test: version.append('3TEST')
         if version_03Lmin: version.append('3Lmin')
+        if version_01: version.append('v1')
 
         if dataset == 'ECCC network':
             if '02P1' in version:
