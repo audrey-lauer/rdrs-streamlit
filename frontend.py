@@ -481,7 +481,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             sd_rdrs = ax2.plot(df_rdrs_03Lmin_sd['date'],    df_rdrs_03Lmin_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_01_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_01_sd['date'],    df_rdrs_01_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_01_sd['date'],    df_rdrs_01_sd[sd_or_gradTT], '--c', label=sd_or_gradTT+' RDRS')
 
         if era5 and not df_era5_sd.empty:
             sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g', label=sd_or_gradTT+' ERA5')
