@@ -333,7 +333,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # RDPS
     rdps_01 = False
     df_rdps_01_sd = pd.DataFrame()
-    if 'v1' in version:
+    if 'rdps' in version:
         try:
             df_rdps_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDPS.pkl")
 
