@@ -311,7 +311,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_rdrs_01_sd = pd.DataFrame()
     if 'v1' in version:
         try:
-            df_rdrs_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3Lmin.pkl")
+            df_rdrs_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv1.pkl")
 
             df_rdrs_01 = df_rdrs_01.drop_duplicates(subset='date')
             elevation_rdrs = df_rdrs_01['elev'].loc[0]
