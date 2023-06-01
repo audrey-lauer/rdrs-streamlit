@@ -604,7 +604,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_02p1: version.append('02P1')
         if version_03test: version.append('3TEST')
         if version_03Lmin: version.append('3Lmin')
-        if version_03tdiag: version.append('3tdiag')
+        if version_03tdiag: version.append('3tdiaglim')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
 
