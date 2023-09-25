@@ -19,7 +19,7 @@ params = {'legend.fontsize': 'medium',
          'ytick.labelsize': 'large'}
 pylab.rcParams.update(params)
 
-matplotlib.use("agg")
+#matplotlib.use("agg")
 _lock = RendererAgg.lock
 
 # Compability between pandas versions and mpl
