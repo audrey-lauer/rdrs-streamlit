@@ -20,7 +20,7 @@ params = {'legend.fontsize': 'medium',
 pylab.rcParams.update(params)
 
 matplotlib.use("agg")
-#_lock = RendererAgg.lock
+_lock = RendererAgg.lock
 
 # Compability between pandas versions and mpl
 pd.plotting.register_matplotlib_converters()
@@ -641,7 +641,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_03test: version.append('3TEST')
         if version_03Lmin: version.append('3Lmin')
         if version_03tdiag: version.append('3tdiaglim')
-        if version_ic05: version.append('ic405')
+        if version_ic45: version.append('ic405')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
 
