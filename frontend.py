@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import RendererAgg
 from matplotlib.cm import get_cmap
 import matplotlib.colors as mcolors
 from streamlit_folium import folium_static, st_folium
@@ -18,9 +17,6 @@ params = {'legend.fontsize': 'medium',
          'xtick.labelsize': 'large',
          'ytick.labelsize': 'large'}
 pylab.rcParams.update(params)
-
-#matplotlib.use("agg")
-_lock = RendererAgg.lock
 
 # Compability between pandas versions and mpl
 pd.plotting.register_matplotlib_converters()
