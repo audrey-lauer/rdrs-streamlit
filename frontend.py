@@ -20,7 +20,7 @@ params = {'legend.fontsize': 'medium',
 pylab.rcParams.update(params)
 
 matplotlib.use("agg")
-#_lock = RendererAgg.lock
+_lock = RendererAgg.lock
 
 # Compability between pandas versions and mpl
 pd.plotting.register_matplotlib_converters()
