@@ -344,6 +344,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
                 df_rdrs_ic405_sd = df_rdrs_ic405_sd.loc[mask]
 
             df_rdrs_ic405 = find_min_max(df_rdrs_ic405, date_list)
+            print(df_rdrs_ic405)
+            print(df_rdrs_ic405_sd)
 
             rdrs_ic405 = True
 
@@ -575,8 +577,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         if not df_rdrs_03tdiag_sd.empty:
             sd_rdrs = ax2.plot(df_rdrs_03tdiag_sd['date'],    df_rdrs_03tdiag_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
 
-        #if not df_rdrs_ic405_sd.empty:
-        #    sd_rdrs = ax2.plot(df_rdrs_ic405_sd['date'],    df_rdrs_ic405[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+        if not df_rdrs_ic405_sd.empty:
+            sd_rdrs = ax2.plot(df_rdrs_ic405_sd['date'],    df_rdrs_ic405[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_01_sd.empty:
             sd_rdrs = ax2.plot(df_rdrs_01_sd['date'],    df_rdrs_01_sd[sd_or_gradTT], '--c', label=sd_or_gradTT+' RDRS')
