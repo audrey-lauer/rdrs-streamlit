@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import streamlit as st
 
 # add_lapse_rate
 # Input:  - lapse_type (str)
