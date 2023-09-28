@@ -568,23 +568,23 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = lns + tmax_rdrs_03test
 
     if rdrs_03Lmin:
-        tmax_rdrs_03Lmin = ax1.plot(date, (temp_rdrs_03Lmin + lapse_rate_rdrs), 'm', label=min_or_max+' RDRS v3Lmin')
+        tmax_rdrs_03Lmin = ax1.plot(date, (temp_rdrs_03Lmin + lapse_rate_rdrs), 'coral', label=min_or_max+' RDRS v3Lmin')
         lns = lns + tmax_rdrs_03Lmin
 
     if rdrs_03tdiag:
-        tmax_rdrs_03tdiag = ax1.plot(date, (temp_rdrs_03tdiag + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS v3tdiag')
+        tmax_rdrs_03tdiag = ax1.plot(date, (temp_rdrs_03tdiag + lapse_rate_rdrs), 'gold', label=min_or_max+' RDRS v3tdiag')
         lns = lns + tmax_rdrs_03tdiag
 
     if rdrs_ic405:
-        tmax_rdrs_ic405 = ax1.plot(date, (temp_rdrs_ic405 + lapse_rate_rdrs), 'm', label=min_or_max+' RDRS IC405')
+        tmax_rdrs_ic405 = ax1.plot(date, (temp_rdrs_ic405 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC405')
         lns = lns + tmax_rdrs_ic405
 
     if rdrs_ic401:
-        tmax_rdrs_ic401 = ax1.plot(date, (temp_rdrs_ic401 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC401')
+        tmax_rdrs_ic401 = ax1.plot(date, (temp_rdrs_ic401 + lapse_rate_rdrs), 'magenta', label=min_or_max+' RDRS IC401')
         lns = lns + tmax_rdrs_ic401
 
     if rdrs_ic404:
-        tmax_rdrs_ic404 = ax1.plot(date, (temp_rdrs_ic404 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC404')
+        tmax_rdrs_ic404 = ax1.plot(date, (temp_rdrs_ic404 + lapse_rate_rdrs), 'slateblue', label=min_or_max+' RDRS IC404')
         lns = lns + tmax_rdrs_ic404
 
     if rdrs_01:
@@ -634,19 +634,19 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             #lns = lns + sd_rdrs
     
         if not df_rdrs_03Lmin_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_03Lmin_sd['date'],    df_rdrs_03Lmin_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_03Lmin_sd['date'],    df_rdrs_03Lmin_sd[sd_or_gradTT], '--', color='coral', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_03tdiag_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_03tdiag_sd['date'],    df_rdrs_03tdiag_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_03tdiag_sd['date'],    df_rdrs_03tdiag_sd[sd_or_gradTT], '--', color='gold', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic405_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic405_sd['date'],    df_rdrs_ic405_sd[sd_or_gradTT], '--m', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic405_sd['date'],    df_rdrs_ic405_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic401_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic401_sd['date'],    df_rdrs_ic401_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic401_sd['date'],    df_rdrs_ic401_sd[sd_or_gradTT], '--', color='magenta', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic404_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic404_sd['date'],    df_rdrs_ic404_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic404_sd['date'],    df_rdrs_ic404_sd[sd_or_gradTT], '--', color='slateblue', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_01_sd.empty:
             sd_rdrs = ax2.plot(df_rdrs_01_sd['date'],    df_rdrs_01_sd[sd_or_gradTT], '--c', label=sd_or_gradTT+' RDRS')
