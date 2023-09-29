@@ -286,7 +286,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_03Lmin = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3Lmin.pkl")
 
             df_rdrs_03Lmin = df_rdrs_03Lmin.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_03Lmin['elev'].loc[0]
 
             df_rdrs_03Lmin_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_03Lmin.columns:
@@ -310,7 +309,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_03tdiag = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv3tdiaglim.pkl")
 
             df_rdrs_03tdiag = df_rdrs_03tdiag.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_03tdiag['elev'].loc[0]
 
             df_rdrs_03tdiag_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_03tdiag.columns:
@@ -334,7 +332,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_ic405 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSvic405.pkl")
 
             df_rdrs_ic405 = df_rdrs_ic405.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_ic405['elev'].loc[0]
 
             df_rdrs_ic405_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_ic405.columns:
@@ -359,7 +356,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_ic401 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSvic401.pkl")
 
             df_rdrs_ic401 = df_rdrs_ic401.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_ic401['elev'].loc[0]
 
             df_rdrs_ic401_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_ic401.columns:
@@ -382,7 +378,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_ic404 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSvic404.pkl")
 
             df_rdrs_ic404 = df_rdrs_ic404.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_ic404['elev'].loc[0]
 
             df_rdrs_ic404_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_ic404.columns:
@@ -406,7 +401,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv1.pkl")
 
             df_rdrs_01 = df_rdrs_01.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdrs_01['elev'].loc[0]
 
             df_rdrs_01_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdrs_01.columns:
@@ -430,7 +424,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdps_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDPS.pkl")
 
             df_rdps_01 = df_rdps_01.drop_duplicates(subset='date')
-            elevation_rdrs = df_rdps_01['elev'].loc[0]
 
             df_rdps_01_sd = pd.DataFrame()
             if sd_or_gradTT in df_rdps_01.columns:
@@ -453,7 +446,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_hrdps_01 = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSvhrdps.pkl")
 
             df_hrdps_01 = df_hrdps_01.drop_duplicates(subset='date')
-            elevation_rdrs = df_hrdps_01['elev'].loc[0]
 
             df_hrdps_01_sd = pd.DataFrame()
             if sd_or_gradTT in df_hrdps_01.columns:
