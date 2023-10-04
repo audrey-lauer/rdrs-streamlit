@@ -677,15 +677,15 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = lns + tmax_rdrs_ic405
 
     if rdrs_ic406:
-        tmax_rdrs_ic406 = ax1.plot(date, (temp_rdrs_ic406 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC406')
+        tmax_rdrs_ic406 = ax1.plot(date, (temp_rdrs_ic406 + lapse_rate_rdrs), 'darkmagenta', label=min_or_max+' RDRS IC406')
         lns = lns + tmax_rdrs_ic406
 
     if rdrs_ic406w8:
-        tmax_rdrs_ic406w8 = ax1.plot(date, (temp_rdrs_ic406w8 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC406w8')
+        tmax_rdrs_ic406w8 = ax1.plot(date, (temp_rdrs_ic406w8 + lapse_rate_rdrs), 'deeppink', label=min_or_max+' RDRS IC406w8')
         lns = lns + tmax_rdrs_ic406w8
 
     if rdrs_ic406w9:
-        tmax_rdrs_ic406w9 = ax1.plot(date, (temp_rdrs_ic406w9 + lapse_rate_rdrs), 'darkviolet', label=min_or_max+' RDRS IC406w9')
+        tmax_rdrs_ic406w9 = ax1.plot(date, (temp_rdrs_ic406w9 + lapse_rate_rdrs), 'palevioletred', label=min_or_max+' RDRS IC406w9')
         lns = lns + tmax_rdrs_ic406w9
 
     if rdrs_ic401:
@@ -762,13 +762,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             sd_rdrs = ax2.plot(df_rdrs_ic405_sd['date'],    df_rdrs_ic405_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic406_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic406_sd['date'],    df_rdrs_ic406_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic406_sd['date'],    df_rdrs_ic406_sd[sd_or_gradTT], '--', color='darkmagenta', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic406w8_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic406w8_sd['date'],    df_rdrs_ic406w8_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic406w8_sd['date'],    df_rdrs_ic406w8_sd[sd_or_gradTT], '--', color='deeppink', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_ic406w9_sd.empty:
-            sd_rdrs = ax2.plot(df_rdrs_ic406w9_sd['date'],    df_rdrs_ic406w9_sd[sd_or_gradTT], '--', color='darkviolet', label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_ic406w9_sd['date'],    df_rdrs_ic406w9_sd[sd_or_gradTT], '--', color='palevioletred', label=sd_or_gradTT+' RDRS')
 
         if not df_rdrs_01_sd.empty:
             sd_rdrs = ax2.plot(df_rdrs_01_sd['date'],    df_rdrs_01_sd[sd_or_gradTT], '--c', label=sd_or_gradTT+' RDRS')
@@ -842,8 +842,8 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic404: version.append('ic404')
         if version_ic405: version.append('ic405')
         if version_ic406: version.append('ic406')
-        if version_ic406: version.append('ic406w8')
-        if version_ic406: version.append('ic406w9')
+        if version_ic406w8: version.append('ic406w8')
+        if version_ic406w9: version.append('ic406w9')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
