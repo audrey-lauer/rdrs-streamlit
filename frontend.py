@@ -871,7 +871,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
             #sd_or_gradTT = st.radio('SD or gradient?',['SD','gradTT'])
 
     if dataset == 'ECCC network':
-        df_station_info = pd.read_csv('data/station-biais-eccc.obs', delim_whitespace=True, skiprows=2)
+        df_station_info = pd.read_csv('data/station-biais-eccc.obs')
     elif dataset == 'BC archive':
         df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
     elif dataset == 'Wood':
