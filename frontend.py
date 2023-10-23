@@ -255,7 +255,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     plt.title(min_or_max+' at '+clicked_name)
 
-    return fig, elevation_rdrs, elevation_era5, biais
+    return fig, elev_rdrs, elevation_era5, biais
 
 ########
 # Page #
@@ -362,10 +362,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
             st.header("Timeserie")
     
             if timeserie_or_diurnal == 'timeserie':
-                fig, elevation_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+                fig, elev_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
      
                 df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
-                df_elev['Elevation (m)'] = [clicked_elev, elevation_rdrs, elevation_era5]
+                df_elev['Elevation (m)'] = [clicked_elev, elev_rdrs[version[0]], elevation_era5]
                 st.dataframe(df_elev)
 
                 st.write(fig)
