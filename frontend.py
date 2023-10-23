@@ -137,10 +137,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         try:
             df_rdrs[v]    = pd.DataFrame()
             df_rdrs_sd[v] = pd.DataFrame()
+            df_rdrs_tt[v] = pd.DataFrame()
+            df_rdrs_t2[v] = pd.DataFrame()
 
             df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
             df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
             elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
+
+            df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
 
             # SD
             if 'SD' in df_rdrs[v].columns:
@@ -149,16 +153,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
                 mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
                 df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
 
-            df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
-
             try:
                 df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
             except:
+                print('No T2 in experience '+v)
                 continue
 
             rdrs[v] = True
 
         except:
+            print('Bug in experience '+v)
             continue
 
     # Lapse rate
@@ -203,8 +207,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     tt_rdrs   = dict.fromkeys(version)
     t2_rdrs   = dict.fromkeys(version)
     for v in version:
-        date_rdrs[v]        = df_rdrs_tt[v]['date_from'].to_list()
-        tt_rdrs[v] = np.array(df_rdrs_tt[v][min_or_max].to_list())
+        date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
+        tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
 
         try:
             t2_rdrs[v] = np.array(df_rdrs_tt[v][min_or_max].to_list())
@@ -238,7 +242,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = tmax_obs
 
     for v in version:
-        tmax_rdrs = ax1.plot(date_rdrs[v], (temperature_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+        tmax_rdrs = ax1.plot(date_rdrs[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
         lns = lns + tmax_rdrs
 
     if era5: 
