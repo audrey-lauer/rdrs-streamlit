@@ -215,10 +215,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
         tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
 
-        try:
-            t2_rdrs[v] = np.array(df_rdrs_tt[v][min_or_max].to_list())
-        except:
-            continue
+        if rdrs_t2[v]:
+            t2_rdrs[v] = np.array(df_rdrs_t2[v][min_or_max].to_list())
     
         date = date_rdrs[v]
  
