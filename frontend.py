@@ -226,7 +226,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = tmax_obs
 
     for v in version:
-        tmax_rdrs = ax1.plot(date_rdrs[v], (temperature_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS v2.1')
+        tmax_rdrs = ax1.plot(date_rdrs[v], (temperature_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
         lns = lns + tmax_rdrs
 
     if era5: 
