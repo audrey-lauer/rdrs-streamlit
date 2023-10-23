@@ -55,11 +55,11 @@ def make_map(df_station_info, field_to_color_by):
 
     return main_map
 
-def find_min_max(df, date_list):
+def find_min_max(df, date_list, variable):
 
     def func(val):
-        minimum_val = df_copy[val['date_from'] : val['date_to']]['TT'].min()
-        maximum_val = df_copy[val['date_from'] : val['date_to']]['TT'].max()
+        minimum_val = df_copy[val['date_from'] : val['date_to']][variable].min()
+        maximum_val = df_copy[val['date_from'] : val['date_to']][variable].max()
         return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
 
     #if 'TT' in df.columns:
@@ -128,6 +128,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     df_rdrs    = dict.fromkeys(version)
     df_rdrs_sd = dict.fromkeys(version)
+    df_rdrs_tt = dict.fromkeys(version)
+    df_rdrs_t2 = dict.fromkeys(version)
     rdrs       = dict.fromkeys(version, False)
     elev_rdrs  = dict.fromkeys(version, 0)
 
@@ -147,13 +149,17 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
                 mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
                 df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
 
-            df_rdrs[v] = find_min_max(df_rdrs[v], date_list)
+            df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
+
+            try:
+                df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
+            except:
+                continue
+
             rdrs[v] = True
 
         except:
             continue
-
-    print(df_rdrs)
 
     # Lapse rate
     lapse_rate_rdrs = dict.fromkeys(version)
@@ -193,11 +199,17 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Plot
     temp_station = np.array(df_station[min_or_max].to_list()) 
 
-    date_rdrs        = dict.fromkeys(version)
-    temperature_rdrs = dict.fromkeys(version)
+    date_rdrs = dict.fromkeys(version)
+    tt_rdrs   = dict.fromkeys(version)
+    t2_rdrs   = dict.fromkeys(version)
     for v in version:
-        date_rdrs[v]        = df_rdrs[v]['date_from'].to_list()
-        temperature_rdrs[v] = np.array(df_rdrs[v][min_or_max].to_list())
+        date_rdrs[v]        = df_rdrs_tt[v]['date_from'].to_list()
+        tt_rdrs[v] = np.array(df_rdrs_tt[v][min_or_max].to_list())
+
+        try:
+            t2_rdrs[v] = np.array(df_rdrs_tt[v][min_or_max].to_list())
+        except:
+            continue
     
         date = date_rdrs[v]
  
@@ -232,6 +244,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     if era5: 
         tmax_era5 = ax1.plot(date, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
+
+    # T2
+    t2 = ax1.plot([], [], ':', color='gray', label="T2")
+    lns = lns + t2 
+
+    for v in version:
+        if not df_rdrs_t2[v].empty:
+            sd_rdrs = ax2.plot(df_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
 
     # SD
     ax2 = ax1.twinx()
