@@ -156,8 +156,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     print(df_rdrs)
 
     # Lapse rate
-    lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
-    lapse_rate_rdrs = np.array(lapse_rate_rdrs)
+    lapse_rate_rdrs = dict.fromkeys(version)
+    for v in version:
+        lapse_rate_rdrs[v] = add_lapse_rate(lapse_type, date_list, clicked_elev, elev_rdrs[v])
+        lapse_rate_rdrs[v] = np.array(lapse_rate_rdrs[v])
 
     # ERA5
     try:
@@ -216,7 +218,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = tmax_obs
 
     for v in version:
-        tmax_rdrs = ax1.plot(date_rdrs[v], (temperature_rdrs[v] + lapse_rate_rdrs), color[v], label=min_or_max+' RDRS v2.1')
+        tmax_rdrs = ax1.plot(date_rdrs[v], (temperature_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS v2.1')
         lns = lns + tmax_rdrs
 
     if era5: 
