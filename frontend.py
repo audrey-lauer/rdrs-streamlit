@@ -134,40 +134,40 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     elev_rdrs  = dict.fromkeys(version, 0)
 
     for v in version:
+        #try:
+        df_rdrs[v]    = pd.DataFrame()
+        df_rdrs_sd[v] = pd.DataFrame()
+        df_rdrs_tt[v] = pd.DataFrame()
+        df_rdrs_t2[v] = pd.DataFrame()
+
+        df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
+        df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
+        elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
+
+        print(df_rdrs[v])
+
+        df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
+
+        print(df_rdrs_tt[v])
+
+        # SD
+        if 'SD' in df_rdrs[v].columns:
+            df_rdrs_sd[v]['date'] = df_rdrs[v]['date']
+            df_rdrs_sd[v]['SD']   = df_rdrs[v]['SD']
+            mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
+            df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
+
         try:
-            df_rdrs[v]    = pd.DataFrame()
-            df_rdrs_sd[v] = pd.DataFrame()
-            df_rdrs_tt[v] = pd.DataFrame()
-            df_rdrs_t2[v] = pd.DataFrame()
-
-            df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
-            df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
-            elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
-
-            print(df_rdrs[v])
-
-            df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
-
-            print(df_rdrs_tt[v])
-
-            # SD
-            if 'SD' in df_rdrs[v].columns:
-                df_rdrs_sd[v]['date'] = df_rdrs[v]['date']
-                df_rdrs_sd[v]['SD']   = df_rdrs[v]['SD']
-                mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
-                df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
-
-            try:
-                df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
-            except:
-                print('No T2 in experience '+v)
-                continue
-
-            rdrs[v] = True
-
+            df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
         except:
-            print('Bug in experience '+v)
+            print('No T2 in experience '+v)
             continue
+
+        rdrs[v] = True
+
+        #except:
+        #    print('Bug in experience '+v)
+        #    continue
 
     # Lapse rate
     lapse_rate_rdrs = dict.fromkeys(version)
@@ -259,7 +259,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     for v in version:
         if not df_rdrs_t2[v].empty:
-            sd_rdrs = ax1.plot(df_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
+            t2_rdrs = ax1.plot(df_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
 
     # SD
     ax2 = ax1.twinx()
