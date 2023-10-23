@@ -150,6 +150,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs[v] = find_min_max(df_rdrs[v], date_list)
             rdrs[v] = True
 
+        except:
+            continue
+
+    print(df_rdrs)
+
     # Lapse rate
     lapse_rate_rdrs = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_rdrs)
     lapse_rate_rdrs = np.array(lapse_rate_rdrs)
