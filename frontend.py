@@ -209,6 +209,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     color = {
         '02P1' : 'b',
         '3TEST': 'r',
+        'ic401'  : 'magenta',
+        'ic404'  : 'slateblue',
+        'ic405'  : 'darkviolet',
+        'ic406'  : 'darkmagenta',
+        'ic406w8': 'deeppink',
+        'ic406w9': 'palevioletred'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
