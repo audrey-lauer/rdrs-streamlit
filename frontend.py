@@ -130,13 +130,12 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     df_rdrs_sd = dict.fromkeys(version)
     df_rdrs_tt = dict.fromkeys(version)
     df_rdrs_t2 = dict.fromkeys(version)
-    rdrs       = dict.fromkeys(version, False)
+    rdrs_sd    = dict.fromkeys(version, False)
+    rdrs_tt    = dict.fromkeys(version, False)
+    rdrs_t2    = dict.fromkeys(version, False)
     elev_rdrs  = dict.fromkeys(version, 0)
 
-    print(version)
-
     for v in version:
-        print(v)
         #try:
         df_rdrs[v]    = pd.DataFrame()
         df_rdrs_sd[v] = pd.DataFrame()
@@ -147,11 +146,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
         elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
-        print(df_rdrs[v])
-
         df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
-
-        print(df_rdrs_tt[v])
 
         # SD
         if 'SD' in df_rdrs[v].columns:
@@ -160,13 +155,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
             df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
 
+            rdrs_sd[v] = True
+
         try:
             df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
+            rdrs_t2[v] = True
         except:
             print('No T2 in experience '+v)
             continue
 
-        rdrs[v] = True
+        rdrs_tt[v] = True
 
         #except:
         #    print('Bug in experience '+v)
@@ -261,8 +259,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = lns + t2 
 
     for v in version:
-        if not df_rdrs_t2[v].empty:
-            t2_rdrs = ax1.plot(df_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
+        if rdrs_t2[v]:
+            t2_rdrs = ax1.plot(date_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
 
     # SD
     ax2 = ax1.twinx()
@@ -276,7 +274,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k', label=sd_or_gradTT+' obs')
 
     for v in version:
-        if not df_rdrs_sd[v].empty:
+        if rdrs_sd[v]:
             sd_rdrs = ax2.plot(df_rdrs_sd[v]['date'], df_rdrs_sd[v][sd_or_gradTT], '--', color=color[v], label=sd_or_gradTT+' RDRS')
 
     if era5 and not df_era5_sd.empty:
