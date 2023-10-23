@@ -119,7 +119,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd[sd_or_gradTT].notna()]
 
-    df_station = find_min_max(df_station_og, date_list)
+    df_station = find_min_max(df_station_og, date_list,'TT')
 
     if df_station.empty:
         station = False
@@ -180,7 +180,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_era5_sd = df_era5_sd.loc[mask]
             df_era5_sd = df_era5_sd[df_era5_sd[sd_or_gradTT].notna()]
 
-        df_era5 = find_min_max(df_era5, date_list)
+        df_era5 = find_min_max(df_era5, date_list, 'TT')
 
         # Lapse rate
         lapse_rate_era5 = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_era5)
