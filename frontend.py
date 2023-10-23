@@ -144,9 +144,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
             elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
+            print(df_rdrs[v])
+
             df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
 
-            print(df_rdrs_tt)
+            print(df_rdrs_tt[v])
 
             # SD
             if 'SD' in df_rdrs[v].columns:
