@@ -133,7 +133,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     rdrs       = dict.fromkeys(version, False)
     elev_rdrs  = dict.fromkeys(version, 0)
 
+    print(version)
+
     for v in version:
+        print(v)
         #try:
         df_rdrs[v]    = pd.DataFrame()
         df_rdrs_sd[v] = pd.DataFrame()
