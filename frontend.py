@@ -159,7 +159,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
         try:
             df_rdrs_t2[v] = find_min_max(df_rdrs[v], date_list, 'T2')
-            rdrs_t2[v] = True
+
+            if not df_rdrs_t2[v].empty:
+                rdrs_t2[v] = True
         except:
             print('No T2 in experience '+v)
             continue
