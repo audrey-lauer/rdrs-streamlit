@@ -196,8 +196,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     date_rdrs        = dict.fromkeys(version)
     temperature_rdrs = dict.fromkeys(version)
     for v in version:
-        date[v] = df_rdrs[v]['date_from'].to_list()
+        date_rdrs[v]        = df_rdrs[v]['date_from'].to_list()
         temperature_rdrs[v] = np.array(df_rdrs[v][min_or_max].to_list())
+    
+        date = date_rdrs[v]
  
     if era5:
         temp_era5 = np.array(df_era5[min_or_max].to_list())
