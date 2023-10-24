@@ -147,6 +147,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
         df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
+        print(v)
+        print(df_rdrs_tt[v])
 
         # SD
         if 'SD' in df_rdrs[v].columns:
@@ -245,7 +247,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = []
     # TT
     if station: 
-        tmax_obs  = ax1.plot(date, temp_station, 'k', label=min_or_max+' obs')
+        tmax_obs  = ax1.plot(df_station['date'], temp_station, 'k', label=min_or_max+' obs')
         lns = tmax_obs
 
     for v in version:
@@ -253,7 +255,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = lns + tmax_rdrs
 
     if era5: 
-        tmax_era5 = ax1.plot(date, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
+        tmax_era5 = ax1.plot(df_era5['date'], (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
 
     # T2
