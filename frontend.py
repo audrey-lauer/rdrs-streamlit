@@ -228,12 +228,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     color = {
         '02P1' : 'b',
         '3TEST': 'r',
-        'ic401'  : 'magenta',
-        'ic404'  : 'slateblue',
-        'ic405'  : 'darkviolet',
-        'ic406'  : 'darkmagenta',
-        'ic406w8': 'deeppink',
-        'ic406w9': 'palevioletred'
+        'ic401'     : 'magenta',
+        'ic401wCWA' : 'coral',
+        'ic404'     : 'slateblue',
+        'ic405'     : 'darkviolet',
+        'ic406'     : 'darkmagenta',
+        'ic406w8'   : 'deeppink',
+        'ic406w9'   : 'palevioletred'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -316,27 +317,29 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_02p1   = st.checkbox('RDRS v2.1')
         version_03test = st.checkbox('RDRS v3')
         version_03Lmin = st.checkbox('RDRS v3 Lmin')
-        version_03tdiag = st.checkbox('RDRS v3 tdiaglim')
-        version_ic401   = st.checkbox('RDRS vIC401')
-        version_ic404   = st.checkbox('RDRS vIC404')
-        version_ic405   = st.checkbox('RDRS vIC405')
-        version_ic406   = st.checkbox('RDRS vIC406')
-        version_ic406w8 = st.checkbox('RDRS vIC406w8')
-        version_ic406w9 = st.checkbox('RDRS vIC406w9')
-        version_rdps    = st.checkbox('RDPS')
-        version_hrdps   = st.checkbox('HRDPS')
+        version_03tdiag   = st.checkbox('RDRS v3 tdiaglim')
+        version_ic401     = st.checkbox('RDRS vIC401')
+        version_ic401wcwa = st.checkbox('RDRS vIC401wCWA')
+        version_ic404     = st.checkbox('RDRS vIC404')
+        version_ic405     = st.checkbox('RDRS vIC405')
+        version_ic406     = st.checkbox('RDRS vIC406')
+        version_ic406w8   = st.checkbox('RDRS vIC406w8')
+        version_ic406w9   = st.checkbox('RDRS vIC406w9')
+        version_rdps      = st.checkbox('RDPS')
+        version_hrdps     = st.checkbox('HRDPS')
 
         version = []
         if version_02p1: version.append('02P1')
         if version_03test: version.append('3TEST')
         if version_03Lmin: version.append('3Lmin')
         if version_03tdiag: version.append('3tdiaglim')
-        if version_ic401: version.append('ic401')
-        if version_ic404: version.append('ic404')
-        if version_ic405: version.append('ic405')
-        if version_ic406: version.append('ic406')
-        if version_ic406w8: version.append('ic406w8')
-        if version_ic406w9: version.append('ic406w9')
+        if version_ic401:     version.append('ic401')
+        if version_ic401wcwa: version.append('ic401wCWA')
+        if version_ic404:     version.append('ic404')
+        if version_ic405:     version.append('ic405')
+        if version_ic406:     version.append('ic406')
+        if version_ic406w8:   version.append('ic406w8')
+        if version_ic406w9:   version.append('ic406w9')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
