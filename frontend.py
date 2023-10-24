@@ -143,6 +143,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
         df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
         df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
+        df_rdrs[v]   - df_rdrs[v].reset_index()
         elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
         print(df_rdrs[v])
