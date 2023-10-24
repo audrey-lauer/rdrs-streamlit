@@ -135,6 +135,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     elev_rdrs  = dict.fromkeys(version, 0)
 
     for v in version:
+        print(v)
         #try:
         df_rdrs[v]    = pd.DataFrame()
         df_rdrs_sd[v] = pd.DataFrame()
@@ -143,14 +144,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
         df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
         df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
-        #df_rdrs[v]   = df_rdrs[v].reset_index()
         elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
-        print(df_rdrs[v])
-
+        print(df_rdrs[v]['TT'])
         df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
-        print(v)
-        print(df_rdrs_tt[v])
 
         # SD
         if 'SD' in df_rdrs[v].columns:
