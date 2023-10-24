@@ -215,8 +215,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
         tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
 
-        if rdrs_t2[v]:
+        #if rdrs_t2[v]:
+        try:
             t2_rdrs[v] = np.array(df_rdrs_t2[v][min_or_max].to_list())
+        except:
+            continue
     
         date = date_rdrs[v]
  
@@ -260,7 +263,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     for v in version:
         #if rdrs_t2[v]:
         try:
-            t2_rdrs = ax1.plot(date_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
+            t2_rdrs = ax1.plot(date_rdrs[v], df_rdrs_t2[v], ':', color=color[v])
         except:
             continue
 
@@ -273,14 +276,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     ax2.set_ylim([-5,500])
 
     if not df_station_sd.empty:
-        sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k', label=sd_or_gradTT+' obs')
+        sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k')
 
     for v in version:
         if rdrs_sd[v]:
-            sd_rdrs = ax2.plot(df_rdrs_sd[v]['date'], df_rdrs_sd[v][sd_or_gradTT], '--', color=color[v], label=sd_or_gradTT+' RDRS')
+            sd_rdrs = ax2.plot(df_rdrs_sd[v]['date'], df_rdrs_sd[v][sd_or_gradTT], '--', color=color[v])
 
     if era5 and not df_era5_sd.empty:
-        sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g', label=sd_or_gradTT+' ERA5')
+        sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g')
         
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
