@@ -208,6 +208,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         era5 = False
 
     # Plot
+    date_station = df_station['date_from'].to_list()
     temp_station = np.array(df_station[min_or_max].to_list()) 
 
     date_rdrs = dict.fromkeys(version)
@@ -226,6 +227,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         date = date_rdrs[v]
  
     if era5:
+        date_era5 = df_era5['date_from'].to_list()
         temp_era5 = np.array(df_era5[min_or_max].to_list())
 
     biais = 0.
@@ -247,7 +249,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = []
     # TT
     if station: 
-        tmax_obs  = ax1.plot(df_station['date'], temp_station, 'k', label=min_or_max+' obs')
+        tmax_obs  = ax1.plot(date_station, temp_station, 'k', label=min_or_max+' obs')
         lns = tmax_obs
 
     for v in version:
@@ -255,7 +257,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = lns + tmax_rdrs
 
     if era5: 
-        tmax_era5 = ax1.plot(df_era5['date'], (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
+        tmax_era5 = ax1.plot(date_era5, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
 
     # T2
