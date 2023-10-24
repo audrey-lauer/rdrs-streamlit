@@ -57,6 +57,8 @@ def make_map(df_station_info, field_to_color_by):
 
 def find_min_max(df, date_list, variable):
 
+    print(df)
+
     def func(val):
         minimum_val = df_copy[val['date_from'] : val['date_to']][variable].min()
         maximum_val = df_copy[val['date_from'] : val['date_to']][variable].max()
@@ -66,6 +68,8 @@ def find_min_max(df, date_list, variable):
         df_temp = pd.DataFrame()
         df_temp['date_from'] = date_list
         df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+
+        print(df_temp)
 
         df_copy = df.copy()
         df_copy.set_index('date', inplace=True)
@@ -146,7 +150,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
         elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
-        print(df_rdrs[v]['TT'])
         df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
 
         # SD
