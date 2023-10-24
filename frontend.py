@@ -258,8 +258,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = lns + t2 
 
     for v in version:
-        if rdrs_t2[v]:
+        #if rdrs_t2[v]:
+        try:
             t2_rdrs = ax1.plot(date_rdrs[v], df_rdrs_t2[v], ':', color=color[v], label=sd_or_gradTT+' RDRS')
+        except:
+            continue
 
     # SD
     ax2 = ax1.twinx()
