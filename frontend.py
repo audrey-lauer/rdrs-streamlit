@@ -57,32 +57,18 @@ def make_map(df_station_info, field_to_color_by):
 
 def find_min_max(df, date_list, variable):
 
-    print(df)
-
     def func(val):
         minimum_val = df_copy[val['date_from'] : val['date_to']][variable].min()
         maximum_val = df_copy[val['date_from'] : val['date_to']][variable].max()
         return    pd.DataFrame({'date_from':[val['date_from']], 'date_to':[val['date_to']], 'Tmin': [minimum_val], 'Tmax': [maximum_val] })
 
-    try:
-        df_temp = pd.DataFrame()
-        df_temp['date_from'] = date_list
-        df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
+    df_temp = pd.DataFrame()
+    df_temp['date_from'] = date_list
+    df_temp['date_to']   = date_list + pd.Timedelta(hours=23)
 
-        print(df_temp)
-
-        df_copy = df.copy()
-        df_copy.set_index('date', inplace=True)
-        df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
-
-    #else:
-    except:
-        df_copy = df.copy()
-        mask = (df_copy['date'] >= date_list[0]) & (df_copy['date'] <= date_list[-1])
-        df_copy = df_copy.loc[mask]
-        df_copy['date_from'] = df_copy['date']
-
-        df_copy.set_index('date', inplace=True)
+    df_copy = df.copy()
+    df_copy.set_index('date', inplace=True)
+    df_copy = pd.concat(list(df_temp.apply(func, axis=1)))
 
     return df_copy
 
@@ -108,7 +94,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     # Dates
     date_debut = year+'-01-02'
-    date_fin   = year+'-12-14'
+    #date_fin   = year+'-12-14'
+    date_fin   = year+'-05-14'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -122,7 +109,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         df_station_sd = df_station_sd.loc[mask]
         df_station_sd = df_station_sd[df_station_sd[sd_or_gradTT].notna()]
 
-    df_station = find_min_max(df_station_og, date_list,'TT')
+    df_station_copy = df_station_og.copy()
+    mask = (df_station_copy['date'] >= date_list[0]) & (df_station_copy['date'] <= date_list[-1])
+    df_station_copy = df_station_copy.loc[mask]
+    df_station_copy['date_from'] = df_station_copy['date']
+    df_station_copy.set_index('date', inplace=True)
+
+    df_station = df_station_copy
 
     if df_station.empty:
         station = False
@@ -140,17 +133,20 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     for v in version:
         print(v)
-        #try:
         df_rdrs[v]    = pd.DataFrame()
         df_rdrs_sd[v] = pd.DataFrame()
         df_rdrs_tt[v] = pd.DataFrame()
         df_rdrs_t2[v] = pd.DataFrame()
 
-        df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
-        df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
-        elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
+        try:
+            df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
+            df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
+            elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
 
-        df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
+            df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
+            rdrs_tt[v] = True
+        except:
+            continue
 
         # SD
         if 'SD' in df_rdrs[v].columns:
@@ -167,12 +163,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         except:
             print('No T2 in experience '+v)
             continue
-
-        rdrs_tt[v] = True
-
-        #except:
-        #    print('Bug in experience '+v)
-        #    continue
 
     # Lapse rate
     lapse_rate_rdrs = dict.fromkeys(version)
@@ -217,13 +207,17 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     tt_rdrs   = dict.fromkeys(version)
     t2_rdrs   = dict.fromkeys(version)
     for v in version:
-        date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
-        tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
+        try:
+            date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
+            tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
+        except:
+            rdrs_tt[v] = False
+            continue
 
-        #if rdrs_t2[v]:
         try:
             t2_rdrs[v] = np.array(df_rdrs_t2[v][min_or_max].to_list())
         except:
+            rdrs_t2[v] = False
             continue
     
         date = date_rdrs[v]
@@ -255,23 +249,26 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lns = tmax_obs
 
     for v in version:
-        tmax_rdrs = ax1.plot(date_rdrs[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
-        lns = lns + tmax_rdrs
+        if rdrs_tt[v]:
+            tmax_rdrs = ax1.plot(date_rdrs[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+            lns = lns + tmax_rdrs
 
     if era5: 
         tmax_era5 = ax1.plot(date_era5, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
+
+    ax1.set_ylabel('Temperature [C]')
+    ax1.set_ylim([-35,35])
+    ax1.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x):d}'))
+    ax1.grid(True)
 
     # T2
     t2 = ax1.plot([], [], ':', color='gray', label="T2")
     lns = lns + t2 
 
     for v in version:
-        #if rdrs_t2[v]:
-        try:
+        if rdrs_t2[v]:
             t2_rdrs = ax1.plot(date_rdrs[v], df_rdrs_t2[v], ':', color=color[v])
-        except:
-            continue
 
     # SD
     ax2 = ax1.twinx()
@@ -291,10 +288,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     if era5 and not df_era5_sd.empty:
         sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g')
         
-    ax1.set_ylabel('Temperature [C]')
-    ax1.set_ylim([-35,35])
-    ax1.grid(True)
-
     # added these three lines
     labs = [l.get_label() for l in lns]
     ax1.legend(lns, labs, bbox_to_anchor=(0.02,1), borderaxespad=0, loc='upper left')
