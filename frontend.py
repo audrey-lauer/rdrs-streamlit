@@ -203,25 +203,25 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     date_station = df_station['date_from'].to_list()
     temp_station = np.array(df_station[min_or_max].to_list()) 
 
-    date_rdrs = dict.fromkeys(version)
+    date_rdrs_tt = dict.fromkeys(version)
+    date_rdrs_t2 = dict.fromkeys(version)
     tt_rdrs   = dict.fromkeys(version)
     t2_rdrs   = dict.fromkeys(version)
     for v in version:
         try:
-            date_rdrs[v] = df_rdrs_tt[v]['date_from'].to_list()
+            date_rdrs_tt[v] = df_rdrs_tt[v]['date_from'].to_list()
             tt_rdrs[v]   = np.array(df_rdrs_tt[v][min_or_max].to_list())
         except:
             rdrs_tt[v] = False
             continue
 
         try:
+            date_rdrs_t2[v] = df_rdrs_t2[v]['date_from'].to_list()
             t2_rdrs[v] = np.array(df_rdrs_t2[v][min_or_max].to_list())
         except:
             rdrs_t2[v] = False
             continue
     
-        date = date_rdrs[v]
- 
     if era5:
         date_era5 = df_era5['date_from'].to_list()
         temp_era5 = np.array(df_era5[min_or_max].to_list())
@@ -250,7 +250,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     for v in version:
         if rdrs_tt[v]:
-            tmax_rdrs = ax1.plot(date_rdrs[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+            tmax_rdrs = ax1.plot(date_rdrs_tt[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
             lns = lns + tmax_rdrs
 
     if era5: 
@@ -267,8 +267,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = lns + t2 
 
     for v in version:
-        if rdrs_t2[v]:
-            t2_rdrs = ax1.plot(date_rdrs[v], t2_rdrs[v], ':', color=color[v])
+        #if rdrs_t2[v]:
+        try:
+            t2_rdrs = ax1.plot(date_rdrs_t2[v], t2_rdrs[v], ':', color=color[v])
+        except:
+            continue
 
     # SD
     ax2 = ax1.twinx()
