@@ -95,7 +95,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     date_debut = year+'-01-02'
     #date_fin   = year+'-12-14'
-    date_fin   = year+'-05-14'
+    date_fin   = year+'-07-01'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -313,11 +313,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
     # 1st column: map
     # 2nd column: parameters
     # 3rd column: timeserie
-    col1, col2, col3 = st.columns([0.3,0.7,1])
+    col1, col1_5, col2, col3 = st.columns([0.3,0.2,0.6,0.9])
 
     with col1:
-        st.header("Parameters")
-        st.write("Choose the parameters for timeserie")
+        st.header("Experiences")
 
         #version = st.radio('Pick the RDRS version',['02P1','3TEST'])
         st.caption("Pick the RDRS version")
@@ -352,13 +351,12 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
 
+    with col1_5:
+        st.header("")
+
         if dataset == 'ECCC network':
-            if '02P1' in version:
-                year = st.slider('Pick the year', 1990, 2018)
-                year = str(year)
-            else:
-                year = st.slider('Pick the year', 1992, 2014)
-                year = str(year)
+            year = st.slider('Pick the year', 1992, 2014)
+            year = str(year)
         elif dataset == 'BC archive':
             year = st.radio('Pick the year',['2017','2018'])
         elif dataset == 'Wood':
