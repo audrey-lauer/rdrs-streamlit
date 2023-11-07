@@ -94,8 +94,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     # Dates
     date_debut = year+'-01-02'
-    #date_fin   = year+'-12-14'
-    date_fin   = year+'-07-01'
+    date_fin   = year+'-12-14'
+    #date_fin   = year+'-07-01'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -231,13 +231,18 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     color = {
         '02P1' : 'b',
         '3TEST': 'r',
-        'ic401'     : 'magenta',
-        'ic401wCWA' : 'coral',
-        'ic404'     : 'slateblue',
-        'ic405'     : 'darkviolet',
-        'ic406'     : 'darkmagenta',
-        'ic406w8'   : 'deeppink',
-        'ic406w9'   : 'palevioletred'
+        'ic401'      : 'magenta',
+        'ic401wCWA'  : 'mediumvioletred',
+        'ic401wCHDSD': 'palevioletred',
+        'ic404'      : 'slateblue',
+        'ic405'      : 'darkviolet',
+        'ic406'      : 'darkmagenta',
+        'ic407'      : 'goldenrod',
+        'ic408'      : 'salmon',
+        'ic409'      : 'orange',
+        'ic406w8'    : 'deeppink',
+        'ic406w9'    : 'palevioletred',
+        'ic411'      : 'turquoise'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -327,11 +332,16 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_03tdiag   = st.checkbox('RDRS v3 tdiaglim')
         version_ic401     = st.checkbox('RDRS vIC401')
         version_ic401wcwa = st.checkbox('RDRS vIC401wCWA')
+        version_ic401wchdsd = st.checkbox('RDRS vIC401wCHDSD')
         version_ic404     = st.checkbox('RDRS vIC404')
         version_ic405     = st.checkbox('RDRS vIC405')
         version_ic406     = st.checkbox('RDRS vIC406')
+        version_ic407     = st.checkbox('RDRS vIC407')
+        version_ic408     = st.checkbox('RDRS vIC408')
         version_ic406w8   = st.checkbox('RDRS vIC406w8')
+        version_ic409     = st.checkbox('RDRS vIC409')
         version_ic406w9   = st.checkbox('RDRS vIC406w9')
+        version_ic411     = st.checkbox('RDRS vIC411')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -342,11 +352,16 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_03tdiag: version.append('3tdiaglim')
         if version_ic401:     version.append('ic401')
         if version_ic401wcwa: version.append('ic401wCWA')
+        if version_ic401wchdsd: version.append('ic401wCHDSD')
         if version_ic404:     version.append('ic404')
         if version_ic405:     version.append('ic405')
         if version_ic406:     version.append('ic406')
+        if version_ic407:     version.append('ic407')
+        if version_ic408:     version.append('ic408')
         if version_ic406w8:   version.append('ic406w8')
+        if version_ic409:     version.append('ic409')
         if version_ic406w9:   version.append('ic406w9')
+        if version_ic411:     version.append('ic411')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
