@@ -267,16 +267,16 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     ax1.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x):d}'))
     ax1.grid(True)
 
-    # T2
-    t2 = ax1.plot([], [], ':', color='gray', label="T2")
-    lns = lns + t2 
+    ## T2
+    #t2 = ax1.plot([], [], ':', color='gray', label="T2")
+    #lns = lns + t2 
 
-    for v in version:
-        #if rdrs_t2[v]:
-        try:
-            t2_rdrs = ax1.plot(date_rdrs_t2[v], t2_rdrs[v], ':', color=color[v])
-        except:
-            continue
+    #for v in version:
+    #    #if rdrs_t2[v]:
+    #    try:
+    #        t2_rdrs = ax1.plot(date_rdrs_t2[v], t2_rdrs[v], ':', color=color[v])
+    #    except:
+    #        continue
 
     # SD
     ax2 = ax1.twinx()
