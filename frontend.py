@@ -232,6 +232,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         '02P1' : 'b',
         '3TEST': 'r',
         'ic401'      : 'magenta',
+        'ic402'      : 'lime',
         'ic401wCWA'  : 'mediumvioletred',
         'ic401wCHDSD': 'palevioletred',
         'ic404'      : 'slateblue',
@@ -331,6 +332,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_03Lmin = st.checkbox('RDRS v3 Lmin')
         version_03tdiag   = st.checkbox('RDRS v3 tdiaglim')
         version_ic401     = st.checkbox('RDRS vIC401')
+        version_ic402     = st.checkbox('RDRS vIC402')
         version_ic401wcwa = st.checkbox('RDRS vIC401wCWA')
         version_ic401wchdsd = st.checkbox('RDRS vIC401wCHDSD')
         version_ic404     = st.checkbox('RDRS vIC404')
@@ -351,6 +353,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_03Lmin: version.append('3Lmin')
         if version_03tdiag: version.append('3tdiaglim')
         if version_ic401:     version.append('ic401')
+        if version_ic402:     version.append('ic402')
         if version_ic401wcwa: version.append('ic401wCWA')
         if version_ic401wchdsd: version.append('ic401wCHDSD')
         if version_ic404:     version.append('ic404')
