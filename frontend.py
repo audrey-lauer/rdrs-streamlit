@@ -95,7 +95,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     date_debut = year+'-01-02'
     date_fin   = year+'-12-14'
-    #date_fin   = year+'-07-01'
+    #date_fin   = year+'-05-14'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
     # Observations
@@ -243,7 +243,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         'ic409'      : 'orange',
         'ic406w8'    : 'deeppink',
         'ic406w9'    : 'palevioletred',
-        'ic411'      : 'turquoise'
+        'ic411'      : 'darkturquoise',
+        'ic414'      : 'aqua'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -344,6 +345,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic409     = st.checkbox('RDRS vIC409')
         version_ic406w9   = st.checkbox('RDRS vIC406w9')
         version_ic411     = st.checkbox('RDRS vIC411')
+        version_ic414     = st.checkbox('RDRS vIC414')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -365,6 +367,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic409:     version.append('ic409')
         if version_ic406w9:   version.append('ic406w9')
         if version_ic411:     version.append('ic411')
+        if version_ic414:     version.append('ic414')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
