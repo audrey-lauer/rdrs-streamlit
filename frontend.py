@@ -376,12 +376,8 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         st.header("")
 
         if dataset == 'ECCC network':
-            year = st.slider('Pick the year', 1992, 2014)
+            year = st.selectbox('Pick the year', [1992,1993,2014])
             year = str(year)
-        elif dataset == 'BC archive':
-            year = st.radio('Pick the year',['2017','2018'])
-        elif dataset == 'Wood':
-            year = st.radio('Pick the year',['2005','2006', '2007','2008','2009','2010'])
         else:
             year = st.radio('Pick the year',['1990','1996', '2017','2018'])
 
@@ -400,11 +396,11 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
     elif dataset == 'Wood':
         df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
 
-    #main_map = make_map(df_station_info, 'DATA.BIAIS_'+year+'_v'+version[0])
-    if year == '1992':
-        main_map = make_map(df_station_info, 'DATA.BIAIS_1992'+'_v'+version[0])
-    else:
-        main_map = make_map(df_station_info, 'DATA.BIAIS_2014'+'_v'+version[0])
+    main_map = make_map(df_station_info, 'DATA.BIAIS_2014_v'+version[0])
+    #if year == '1992':
+    #    main_map = make_map(df_station_info, 'DATA.BIAIS_1992'+'_v'+version[0])
+    #else:
+    #    main_map = make_map(df_station_info, 'DATA.BIAIS_2014'+'_v'+version[0])
 
     with col2:
         st.header("Interactive map")
