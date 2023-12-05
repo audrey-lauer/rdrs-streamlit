@@ -171,33 +171,36 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         lapse_rate_rdrs[v] = np.array(lapse_rate_rdrs[v])
 
     # ERA5
-    try:
-        df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
-        elevation_era5 = df_era5['elev'].iloc[0]
-
-        df_era5_sd = pd.DataFrame()
-        if sd_or_gradTT in df_era5.columns:
-            df_era5_sd['date'] = df_era5['date']
-            df_era5_sd[sd_or_gradTT]   = df_era5[sd_or_gradTT]
-            mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
-            df_era5_sd = df_era5_sd.loc[mask]
-            df_era5_sd = df_era5_sd[df_era5_sd[sd_or_gradTT].notna()]
-
-        df_era5 = find_min_max(df_era5, date_list, 'TT')
-
-        # Lapse rate
-        lapse_rate_era5 = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_era5)
-        lapse_rate_era5 = np.array(lapse_rate_era5)
-
-        era5 = True
-
-        if df_era5.empty:
+    era5 = False
+    elevation_era5 = 0.
+    if 'ERA5L' in version:
+        try:
+            df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
+            elevation_era5 = df_era5['elev'].iloc[0]
+    
+            df_era5_sd = pd.DataFrame()
+            if sd_or_gradTT in df_era5.columns:
+                df_era5_sd['date'] = df_era5['date']
+                df_era5_sd[sd_or_gradTT]   = df_era5[sd_or_gradTT]
+                mask = (df_era5_sd['date'] > date_debut) & (df_era5_sd['date'] <= date_fin)
+                df_era5_sd = df_era5_sd.loc[mask]
+                df_era5_sd = df_era5_sd[df_era5_sd[sd_or_gradTT].notna()]
+    
+            df_era5 = find_min_max(df_era5, date_list, 'TT')
+    
+            # Lapse rate
+            lapse_rate_era5 = add_lapse_rate(lapse_type, date_list, clicked_elev, elevation_era5)
+            lapse_rate_era5 = np.array(lapse_rate_era5)
+    
+            era5 = True
+    
+            if df_era5.empty:
+                elevation_era5 = 0.
+                era5 = False
+    
+        except:
             elevation_era5 = 0.
             era5 = False
-
-    except:
-        elevation_era5 = 0.
-        era5 = False
 
     # Plot
     date_station = df_station['date_from'].to_list()
@@ -327,8 +330,9 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
         #version = st.radio('Pick the RDRS version',['02P1','3TEST'])
         st.caption("Pick the RDRS version")
+        version_era5   = st.checkbox('ERA5-land', True)
         version_01     = st.checkbox('RDRS v1')
-        version_02p1   = st.checkbox('RDRS v2.1')
+        version_02p1   = st.checkbox('RDRS v2.1', True)
         version_03test = st.checkbox('RDRS v3')
         version_03Lmin = st.checkbox('RDRS v3 Lmin')
         version_03tdiag   = st.checkbox('RDRS v3 tdiaglim')
@@ -350,6 +354,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_hrdps     = st.checkbox('HRDPS')
 
         version = []
+        if version_era5: version.append('ERA5L')
         if version_02p1: version.append('02P1')
         if version_03test: version.append('3TEST')
         if version_03Lmin: version.append('3Lmin')
@@ -396,7 +401,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
     elif dataset == 'Wood':
         df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
 
-    main_map = make_map(df_station_info, 'DATA.BIAIS_2014_v'+version[0])
+    main_map = make_map(df_station_info, 'DATA.BIAIS_2014_v02P1')
     #if year == '1992':
     #    main_map = make_map(df_station_info, 'DATA.BIAIS_1992'+'_v'+version[0])
     #else:
