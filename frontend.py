@@ -289,7 +289,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     lns = lns + sd
 
     ax2.set_ylabel('Snow depth [cm]')
-    ax2.set_ylim([-5,500])
+    ax2.set_ylim([-5,950])
 
     if not df_station_sd.empty:
         sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k')
