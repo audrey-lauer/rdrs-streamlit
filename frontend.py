@@ -247,7 +247,11 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         'ic406w8'    : 'deeppink',
         'ic406w9'    : 'palevioletred',
         'ic411'      : 'darkturquoise',
-        'ic414'      : 'dodgerblue'
+        'ic414'      : 'dodgerblue',
+        'ic415'      : 'deeppink',
+        'ic416'      : 'orange',
+        'ic418'      : 'orange',
+        'ic419'      : 'tomato'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -350,6 +354,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic406w9   = st.checkbox('RDRS vIC406w9')
         version_ic411     = st.checkbox('RDRS vIC411')
         version_ic414     = st.checkbox('RDRS vIC414')
+        version_ic415     = st.checkbox('RDRS vIC415')
+        version_ic416     = st.checkbox('RDRS vIC416')
+        version_ic418     = st.checkbox('RDRS vIC418')
+        version_ic419     = st.checkbox('RDRS vIC419')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -373,6 +381,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic406w9:   version.append('ic406w9')
         if version_ic411:     version.append('ic411')
         if version_ic414:     version.append('ic414')
+        if version_ic415:     version.append('ic415')
+        if version_ic416:     version.append('ic416')
+        if version_ic418:     version.append('ic418')
+        if version_ic419:     version.append('ic419')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
