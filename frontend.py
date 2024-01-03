@@ -155,6 +155,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             mask = ( df_rdrs_sd[v]['date'] > date_debut ) & ( df_rdrs_sd[v]['date'] <= date_fin )
             df_rdrs_sd[v] = df_rdrs_sd[v].loc[mask]
 
+            df_rdrs_sd[v].sort_values(by='date', inplace=True)
+
             rdrs_sd[v] = True
 
         try:
@@ -250,6 +252,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         'ic414'      : 'dodgerblue',
         'ic415'      : 'deeppink',
         'ic416'      : 'orange',
+        'ic417'      : 'tomato',
         'ic418'      : 'orange',
         'ic419'      : 'tomato'
     }
@@ -356,6 +359,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic414     = st.checkbox('RDRS vIC414')
         version_ic415     = st.checkbox('RDRS vIC415')
         version_ic416     = st.checkbox('RDRS vIC416')
+        version_ic417     = st.checkbox('RDRS vIC417')
         version_ic418     = st.checkbox('RDRS vIC418')
         version_ic419     = st.checkbox('RDRS vIC419')
         version_rdps      = st.checkbox('RDPS')
@@ -383,6 +387,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic414:     version.append('ic414')
         if version_ic415:     version.append('ic415')
         if version_ic416:     version.append('ic416')
+        if version_ic417:     version.append('ic417')
         if version_ic418:     version.append('ic418')
         if version_ic419:     version.append('ic419')
         if version_01: version.append('v1')
