@@ -254,7 +254,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
         'ic416'      : 'orange',
         'ic417'      : 'tomato',
         'ic418'      : 'orange',
-        'ic419'      : 'tomato'
+        'ic419'      : 'tomato',
+        'ic420'      : 'tomato'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -362,6 +363,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic417     = st.checkbox('RDRS vIC417')
         version_ic418     = st.checkbox('RDRS vIC418')
         version_ic419     = st.checkbox('RDRS vIC419')
+        version_ic420     = st.checkbox('RDRS vIC420')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -390,6 +392,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic417:     version.append('ic417')
         if version_ic418:     version.append('ic418')
         if version_ic419:     version.append('ic419')
+        if version_ic420:     version.append('ic420')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
