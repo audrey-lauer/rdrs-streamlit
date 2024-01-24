@@ -7,8 +7,11 @@ from matplotlib.cm import get_cmap
 import matplotlib.colors as mcolors
 from streamlit_folium import folium_static, st_folium
 import folium
+from folium import plugins
 from branca.colormap import linear, LinearColormap
 from backend import add_lapse_rate#, find_min_max
+from geopandas import GeoDataFrame
+from shapely.geometry import Polygon, Point
 
 import matplotlib.pylab as pylab
 params = {'legend.fontsize': 'medium',
@@ -25,11 +28,16 @@ pd.plotting.register_matplotlib_converters()
 st.set_page_config(layout="wide")
 
 @st.cache(hash_funcs={folium.folium.Map: lambda _: None}, allow_output_mutation=True)
-def make_map(df_station_info, field_to_color_by):
+def make_map(df_station_info, field_to_color_by, draw_polygon):
     main_map = folium.Map(location=(52, -121), zoom_start=5)
     colormap = linear.RdYlBu_11.scale(-5,5)
     colormap.caption = 'Yearly bias'
     colormap.add_to(main_map)
+
+    # Enable drawing polygons on the map
+    if draw_polygon:
+        draw_plugin = plugins.Draw(export=True)
+        draw_plugin.add_to(main_map)
 
     for i in df_station_info.index:
         lat  = df_station_info['LAT'].loc[i]
@@ -132,7 +140,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     elev_rdrs  = dict.fromkeys(version, 0)
 
     for v in version:
-        print(v)
         df_rdrs[v]    = pd.DataFrame()
         df_rdrs_sd[v] = pd.DataFrame()
         df_rdrs_tt[v] = pd.DataFrame()
@@ -204,6 +211,10 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             elevation_era5 = 0.
             era5 = False
 
+    return elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd
+
+def make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd):
+
     # Plot
     date_station = df_station['date_from'].to_list()
     temp_station = np.array(df_station[min_or_max].to_list()) 
@@ -220,13 +231,6 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             rdrs_tt[v] = False
             continue
 
-        try:
-            date_rdrs_t2[v] = df_rdrs_t2[v]['date_from'].to_list()
-            t2_rdrs[v] = np.array(df_rdrs_t2[v][min_or_max].to_list())
-        except:
-            rdrs_t2[v] = False
-            continue
-    
     if era5:
         date_era5 = df_era5['date_from'].to_list()
         temp_era5 = np.array(df_era5[min_or_max].to_list())
@@ -268,28 +272,18 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
 
     for v in version:
         if rdrs_tt[v]:
-            tmax_rdrs = ax1.plot(date_rdrs_tt[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+            #tmax_rdrs = ax1.plot(date_rdrs_tt[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+            tmax_rdrs = ax1.plot(date_rdrs_tt[v], tt_rdrs[v], color[v], label=min_or_max+' RDRS '+v)
             lns = lns + tmax_rdrs
 
     if era5: 
-        tmax_era5 = ax1.plot(date_era5, (temp_era5 + lapse_rate_era5), 'g', label=min_or_max+' ERA5')
+        tmax_era5 = ax1.plot(date_era5, temp_era5, 'g', label=min_or_max+' ERA5')
         lns = lns + tmax_era5
 
     ax1.set_ylabel('Temperature [C]')
     ax1.set_ylim([-35,35])
     ax1.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x):d}'))
     ax1.grid(True)
-
-    ## T2
-    #t2 = ax1.plot([], [], ':', color='gray', label="T2")
-    #lns = lns + t2 
-
-    #for v in version:
-    #    #if rdrs_t2[v]:
-    #    try:
-    #        t2_rdrs = ax1.plot(date_rdrs_t2[v], t2_rdrs[v], ':', color=color[v])
-    #    except:
-    #        continue
 
     # SD
     ax2 = ax1.twinx()
@@ -300,22 +294,22 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     ax2.set_ylim([-5,950])
 
     if not df_station_sd.empty:
-        sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd[sd_or_gradTT], '--k')
+        sd_obs  = ax2.plot(df_station_sd['date'], df_station_sd['SD'], '--k')
 
     for v in version:
         if rdrs_sd[v]:
-            sd_rdrs = ax2.plot(df_rdrs_sd[v]['date'], df_rdrs_sd[v][sd_or_gradTT], '--', color=color[v])
+            sd_rdrs = ax2.plot(df_rdrs_sd[v]['date'], df_rdrs_sd[v]['SD'], '--', color=color[v])
 
     if era5 and not df_era5_sd.empty:
-        sd_era5 = ax2.plot(df_era5_sd['date'],    df_era5_sd[sd_or_gradTT], '--g')
+        sd_era5 = ax2.plot(df_era5_sd['date'], df_era5_sd['SD'], '--g')
         
     # added these three lines
     labs = [l.get_label() for l in lns]
     ax1.legend(lns, labs, bbox_to_anchor=(0.02,1), borderaxespad=0, loc='upper left')
 
     plt.title(min_or_max+' at '+clicked_name)
-
-    return fig, elev_rdrs, elevation_era5, biais
+    
+    return fig
 
 ########
 # Page #
@@ -416,12 +410,16 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
 
     if dataset == 'ECCC network':
         df_station_info = pd.read_csv('data/station-biais-eccc.obs')
+
+        geometry = [Point(xy) for xy in zip(df_station_info['LON'], df_station_info['LAT'])]
+        gdf_station_info = GeoDataFrame(df_station_info, geometry=geometry)
+
     elif dataset == 'BC archive':
         df_station_info = pd.read_csv('data/station-biais-canswe.obs', delim_whitespace=True, skiprows=2)
     elif dataset == 'Wood':
         df_station_info = pd.read_csv('data/station-biais-wood.obs', delim_whitespace=True, skiprows=2)
 
-    main_map = make_map(df_station_info, 'DATA.BIAIS_2014_v02P1')
+    main_map         = make_map(df_station_info, 'DATA.BIAIS_v02P1', True)
     #if year == '1992':
     #    main_map = make_map(df_station_info, 'DATA.BIAIS_1992'+'_v'+version[0])
     #else:
@@ -432,32 +430,193 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         st.write("Click on a station to generate timeserie")
         # Plot map and get data of last click/zoom/etc
         st_data = st_folium(main_map, width=500, height=500)
+
+    with col3:
+        #tab1, tab2 = st.tabs(["station", "region"])
+        st.header("Timeserie")
+        average = st.radio('',['station','average'])
+
+        #with tab1:
+        if average == 'station':
+
+            if st_data['last_object_clicked'] is not None:
+                try:
+                    clicked_lat = st_data['last_object_clicked']['lat']
+                    clicked_lon = st_data['last_object_clicked']['lng']
+            
+                    clicked_info = df_station_info[(df_station_info['LAT'] == clicked_lat) & (df_station_info['LON'] == clicked_lon)]
+                    clicked_id   = clicked_info['NO'].to_list()[0]
+                    clicked_name = clicked_info['ID'].to_list()[0]
+                    clicked_elev   = clicked_info['ELEV'].to_list()[0]
     
-    if st_data['last_object_clicked'] is not None:
-        clicked_lat = st_data['last_object_clicked']['lat']
-        clicked_lon = st_data['last_object_clicked']['lng']
-    
-        clicked_info = df_station_info[(df_station_info['LAT'] == clicked_lat) & (df_station_info['LON'] == clicked_lon)]
-        clicked_id   = clicked_info['NO'].to_list()[0]
-        clicked_name = clicked_info['ID'].to_list()[0]
-        clicked_elev   = clicked_info['ELEV'].to_list()[0]
-    
-        with col3:
-            st.header("Timeserie")
-    
-            if timeserie_or_diurnal == 'timeserie':
-                fig, elev_rdrs, elevation_era5, biais = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+                    # Plot station figure
+                    elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+                    fig = make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd)
      
-                df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
-                df_elev['Elevation (m)'] = [clicked_elev, elev_rdrs[version[0]], elevation_era5]
-                st.dataframe(df_elev)
+                    df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
+                    df_elev['Elevation (m)'] = [clicked_elev, elev_rdrs[version[0]], elevation_era5]
+                    st.dataframe(df_elev)
 
-                st.write(fig)
+                    st.write(fig)
 
-            elif timeserie_or_diurnal == 'diurnal cycle':
+                except:
+                    st.write('Click on a station')
 
-                month = st.selectbox('Month',['January','Febuary','March','April','May','June','July','August','September','October','November','December','DJF','MAM','JJA','SON'])
-                fig   = make_diurnal_cycle(year, clicked_id, clicked_name, version, month, hour_range)
-           
-                st.write(fig)
+        #with tab2:
+        if average == 'average':
+
+            if st_data['last_active_drawing'] is not None:
+                try:
+                    clicked_polygon = st_data['last_active_drawing']['geometry']
+                    coordinates = clicked_polygon['coordinates'][0]
+                    polygon = Polygon(coordinates)
+
+                    clicked_info = gdf_station_info.loc[gdf_station_info.within(polygon)]
+                    clicked_id_list   = clicked_info['NO'].to_list()
+                    clicked_name_list = clicked_info['ID'].to_list()
+                    clicked_elev_list = clicked_info['ELEV'].to_list()
+
+                    df_all = pd.DataFrame()
+                    date_list = pd.date_range(start=year+'-01-02', end=year+'-12-10')
+                    df_all['date'] = date_list
+
+                    df_all_sd = pd.DataFrame()
+                    df_all_sd['date'] = date_list
+
+                    # Get all station daily data
+                    station_to_average = []
+                    for i in range(len(clicked_id_list)):
+                        clicked_id   = clicked_id_list[i]
+                        clicked_name = clicked_name_list[i]
+                        clicked_elev = clicked_elev_list[i]
+ 
+                        # Read data
+                        elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+
+                        # Save station data in the full dataframe
+                        mask = (df_station['date_from'] >= date_list[0]) & (df_station['date_from'] <= date_list[-1])
+                        df_station    = df_station.loc[mask]
+                        is_column_nan = df_station[min_or_max].isna().all()
+
+                        if not is_column_nan:
+                            station_to_average.append(clicked_id)
+                            values = df_station[min_or_max]
+                            df_all = pd.merge(df_all, values, left_on='date', right_index=True, how='left')
+                            df_all.rename(columns={min_or_max: clicked_id+'-station'}, inplace=True)
+
+                            mask = (df_station_sd['date'] >= date_list[0]) & (df_station_sd['date'] <= date_list[-1])
+                            df_station_sd = df_station_sd.loc[mask]
+                            df_station_sd.set_index('date', inplace=True)
+                            values = df_station_sd['SD']
+                            df_all_sd = pd.merge(df_all_sd, values, left_on='date', right_index=True, how='left')
+                            df_all_sd.rename(columns={'SD': clicked_id+'-station'}, inplace=True)
+
+                            # Save station data in the full dataframe
+                            try:
+                                mask = (df_era5['date_from'] >= date_list[0]) & (df_era5['date_from'] <= date_list[-1])
+                                df_era5 = df_era5.loc[mask]
+                                df_era5.set_index('date_from', inplace=True)
+                                values = df_era5[min_or_max]
+                                df_all = pd.merge(df_all, values, left_on='date', right_index=True, how='left')
+                                df_all.rename(columns={min_or_max: clicked_id+'-ERA5'}, inplace=True)
+
+                                df_era5_sd['date'] = df_era5_sd['date'].dt.date
+                                mask = (df_era5_sd['date'] >= date_list[0]) & (df_era5_sd['date'] <= date_list[-1])
+                                df_era5_sd = df_era5_sd.loc[mask]
+                                values = df_era5_sd['SD'].to_list()
+                                df_all_sd[clicked_id+'-ERA5'] = values
+
+                            except:
+                                continue
+
+                            for v in version:
+                                if v is not 'ERA5L':
+                                    df_rdrs_temp = df_rdrs[v]
+                                    mask = (df_rdrs_temp['date_from'] >= date_list[0]) & (df_rdrs_temp['date_from'] <= date_list[-1])
+                                    df_rdrs_temp = df_rdrs_temp.loc[mask]
+                                    df_rdrs_temp.set_index('date_from', inplace=True)
+                                    values = df_rdrs_temp[min_or_max]
+                                    df_all = pd.merge(df_all, values, left_on='date', right_index=True, how='left')
+                                    df_all.rename(columns={min_or_max: clicked_id+'-'+v}, inplace=True)
+
+                                    df_rdrs_sd_temp = df_rdrs_sd[v]
+                                    df_rdrs_sd_temp = df_rdrs_sd_temp[df_rdrs_sd_temp['date'].dt.hour == 12]
+                                    df_rdrs_sd_temp['date'] = df_rdrs_sd_temp['date'].dt.date
+                                    mask = (df_rdrs_sd_temp['date'] >= date_list[0]) & (df_rdrs_sd_temp['date'] <= date_list[-1])
+                                    df_rdrs_sd_temp = df_rdrs_sd_temp.loc[mask]
+                                    df_rdrs_sd_temp.set_index('date', inplace=True)
+                                    values = df_rdrs_sd_temp['SD'].to_list()
+                                    df_all_sd[clicked_id+'-'+v] = values
+
+                    # Create new columns for averages
+                    columns_station = [f'{prefix}-station' for prefix in station_to_average if f'{prefix}-station' in df_all.columns]
+                    columns_era5    = [f'{prefix}-ERA5'    for prefix in station_to_average if f'{prefix}-ERA5'    in df_all.columns]
+                    df_all['average-station'] = df_all[columns_station].mean(axis=1)
+                    df_all['average-era5']    = df_all[columns_era5].mean(axis=1)
+
+                    columns_station = [f'{prefix}-station' for prefix in station_to_average if f'{prefix}-station' in df_all_sd.columns]
+                    columns_era5    = [f'{prefix}-ERA5'    for prefix in station_to_average if f'{prefix}-ERA5'    in df_all_sd.columns]
+                    df_all_sd['average-station'] = df_all_sd[columns_station].mean(axis=1)
+                    df_all_sd['average-era5']    = df_all_sd[columns_era5].mean(axis=1)
+
+                    for v in version:
+                        columns_02P1 = [f'{prefix}-'+v    for prefix in station_to_average if f'{prefix}-'+v    in df_all.columns]
+                        df_all['average-'+v] = df_all[columns_02P1].mean(axis=1)
+
+                        columns_02P1 = [f'{prefix}-'+v    for prefix in station_to_average if f'{prefix}-'+v    in df_all_sd.columns]
+                        df_all_sd['average-'+v]    = df_all_sd[columns_02P1].mean(axis=1)
+
+                    print(df_all)
+                    print(df_all_sd)
+
+                    # Reformat data to be read by the function
+                    df_station    = df_all[['date','average-station']]
+                    df_station.rename(columns={'average-station': min_or_max, 'date': 'date_from'}, inplace=True)
+                    df_station_sd = df_all_sd[['date','average-station']]
+                    df_station_sd.rename(columns={'average-station': 'SD', 'date': 'date'}, inplace=True)
+                    station       = True
+
+                    df_rdrs_tt = {}
+                    df_rdrs_sd = {}
+                    for v in version:
+                        df_rdrs_tt[v] = df_all[['date','average-'+v]]
+                        df_rdrs_tt[v].rename(columns={'average-'+v: min_or_max, 'date': 'date_from'}, inplace=True)
+
+                        df_rdrs_sd[v] = df_all_sd[['date','average-'+v]]
+                        df_rdrs_sd[v].rename(columns={'average-'+v: 'SD', 'date': 'date'}, inplace=True)
+
+                    df_era5 = df_all[['date','average-era5']]
+                    df_era5.rename(columns={'average-era5': min_or_max, 'date': 'date_from'}, inplace=True)
+                    df_era5_sd = df_all_sd[['date','average-era5']]
+                    df_era5_sd.rename(columns={'average-era5': 'SD', 'date': 'date'}, inplace=True)
+                    era5 = True
+                    
+                    fig = make_figure('region', version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd)
+                    st.write(fig)
+
+                    # Metadata
+                    st.subheader('Data about averaged timeserie:')
+
+                    metadata = clicked_info[['ID','NO','LAT','LON','ELEV']]
+                    metadata['in average'] = metadata['NO'].isin(station_to_average)
+
+                    st.write(metadata)
+                    #st.write(df_station_info[df_station_info['NO'] == station_to_average])
+
+                except:
+                    st.write('Click on a polygon')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
