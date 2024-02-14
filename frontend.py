@@ -101,8 +101,13 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     sd_or_gradTT = 'SD'
 
     # Dates
-    date_debut = year+'-01-02'
-    date_fin   = year+'-12-14'
+    if year == '1992':
+        date_debut = '1992-01-02'
+        date_fin   = '1992-12-14'
+    else:
+        date_debut = year+'-01-02'
+        date_fin   = year+'-12-14'
+
     #date_fin   = year+'-05-14'
     date_list = pd.date_range(start=date_debut, end=date_fin)
  
@@ -182,12 +187,14 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # ERA5
     era5 = False
     elevation_era5 = 0.
+    df_era5    = pd.DataFrame()
+    df_era5_sd = pd.DataFrame()
+    print(version)
     if 'ERA5L' in version:
         try:
             df_era5 = pd.read_pickle("data/"+clicked_id+"-ERA5.pkl")
             elevation_era5 = df_era5['elev'].iloc[0]
     
-            df_era5_sd = pd.DataFrame()
             if sd_or_gradTT in df_era5.columns:
                 df_era5_sd['date'] = df_era5['date']
                 df_era5_sd[sd_or_gradTT]   = df_era5[sd_or_gradTT]
@@ -238,28 +245,33 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
     biais = 0.
 
     color = {
-        '02P1' : 'b',
+        '02P1' : 'royalblue',
         '3TEST': 'r',
         'ic401'      : 'magenta',
+        'ic401v3'    : 'purple',
         'ic402'      : 'lime',
         'ic401wCWA'  : 'mediumvioletred',
         'ic401wCHDSD': 'palevioletred',
         'ic404'      : 'slateblue',
         'ic405'      : 'darkviolet',
         'ic406'      : 'darkmagenta',
-        'ic407'      : 'goldenrod',
-        'ic408'      : 'tomato',
+        'ic407'      : 'turquoise',
+        'ic408'      : 'gold',
         'ic409'      : 'orange',
         'ic406w8'    : 'deeppink',
         'ic406w9'    : 'palevioletred',
-        'ic411'      : 'darkturquoise',
-        'ic414'      : 'dodgerblue',
-        'ic415'      : 'deeppink',
+        'ic411'      : 'firebrick',
+        'ic414'      : 'indianred',
+        'ic414H'     : 'darkblue',
+        'ic415'      : 'teal',
         'ic416'      : 'orange',
         'ic417'      : 'tomato',
         'ic418'      : 'orange',
-        'ic419'      : 'tomato',
-        'ic420'      : 'tomato'
+        'ic419'      : 'slateblue',
+        'ic420'      : 'tomato',
+        'ic421'      : 'orange',
+        'ic422'      : 'red',
+        'ic425'      : 'tomato'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -339,9 +351,10 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_03Lmin = st.checkbox('RDRS v3 Lmin')
         version_03tdiag   = st.checkbox('RDRS v3 tdiaglim')
         version_ic401     = st.checkbox('RDRS vIC401')
-        version_ic402     = st.checkbox('RDRS vIC402')
+        version_ic401v3   = st.checkbox('RDRS vIC401v3')
         version_ic401wcwa = st.checkbox('RDRS vIC401wCWA')
         version_ic401wchdsd = st.checkbox('RDRS vIC401wCHDSD')
+        version_ic402     = st.checkbox('RDRS vIC402')
         version_ic404     = st.checkbox('RDRS vIC404')
         version_ic405     = st.checkbox('RDRS vIC405')
         version_ic406     = st.checkbox('RDRS vIC406')
@@ -352,12 +365,15 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic406w9   = st.checkbox('RDRS vIC406w9')
         version_ic411     = st.checkbox('RDRS vIC411')
         version_ic414     = st.checkbox('RDRS vIC414')
+        version_ic414H    = st.checkbox('RDRS vIC414H')
         version_ic415     = st.checkbox('RDRS vIC415')
         version_ic416     = st.checkbox('RDRS vIC416')
         version_ic417     = st.checkbox('RDRS vIC417')
         version_ic418     = st.checkbox('RDRS vIC418')
         version_ic419     = st.checkbox('RDRS vIC419')
         version_ic420     = st.checkbox('RDRS vIC420')
+        version_ic421     = st.checkbox('RDRS vIC421')
+        version_ic422     = st.checkbox('RDRS vIC422')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -368,6 +384,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_03Lmin: version.append('3Lmin')
         if version_03tdiag: version.append('3tdiaglim')
         if version_ic401:     version.append('ic401')
+        if version_ic401v3:   version.append('ic401v3')
         if version_ic402:     version.append('ic402')
         if version_ic401wcwa: version.append('ic401wCWA')
         if version_ic401wchdsd: version.append('ic401wCHDSD')
@@ -381,12 +398,15 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic406w9:   version.append('ic406w9')
         if version_ic411:     version.append('ic411')
         if version_ic414:     version.append('ic414')
+        if version_ic414H:    version.append('ic414H')
         if version_ic415:     version.append('ic415')
         if version_ic416:     version.append('ic416')
         if version_ic417:     version.append('ic417')
         if version_ic418:     version.append('ic418')
         if version_ic419:     version.append('ic419')
         if version_ic420:     version.append('ic420')
+        if version_ic421:     version.append('ic421')
+        if version_ic422:     version.append('ic422')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
