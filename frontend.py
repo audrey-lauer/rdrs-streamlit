@@ -107,6 +107,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     else:
         date_debut = year+'-01-02'
         date_fin   = year+'-12-14'
+        #date_fin   = year+'-06-24'
 
     #date_fin   = year+'-05-14'
     date_list = pd.date_range(start=date_debut, end=date_fin)
@@ -260,7 +261,7 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
         'ic409'      : 'orange',
         'ic406w8'    : 'deeppink',
         'ic406w9'    : 'palevioletred',
-        'ic411'      : 'darkblue',
+        'ic411'      : 'mediumblue',
         'ic414'      : 'indianred',
         'ic414H'     : 'firebrick',
         'ic415'      : 'teal',
