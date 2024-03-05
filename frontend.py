@@ -103,7 +103,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     if year == '1992':
         date_debut = '1992-01-02'
-        date_fin   = '1992-06-14'
+        date_fin   = '1992-12-14'
     else:
         date_debut = year+'-01-02'
         date_fin   = year+'-12-14'
