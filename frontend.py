@@ -257,7 +257,7 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
         'ic405'      : 'darkviolet',
         'ic406'      : 'darkmagenta',
         'ic407'      : 'turquoise',
-        'ic408'      : 'gold',
+        'ic408'      : 'goldenrod',
         'ic409'      : 'orange',
         'ic406w8'    : 'deeppink',
         'ic406w9'    : 'palevioletred',
