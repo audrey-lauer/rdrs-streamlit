@@ -103,7 +103,8 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     if year == '1992':
         date_debut = '1992-01-02'
-        date_fin   = '1993-08-31'
+        date_fin   = '1992-12-14'
+        #date_fin   = '1993-08-31'
     else:
         date_debut = year+'-01-02'
         date_fin   = year+'-12-14'
@@ -155,6 +156,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             df_rdrs[v]   = pd.read_pickle("data/"+hour_range+"/"+clicked_id+"-RDRSv"+v+".pkl")
             df_rdrs[v]   = df_rdrs[v].drop_duplicates(subset='date')
             elev_rdrs[v] = df_rdrs[v]['elev'].loc[0]
+            print(elev_rdrs)
 
             df_rdrs_tt[v] = find_min_max(df_rdrs[v], date_list, 'TT')
             rdrs_tt[v] = True
