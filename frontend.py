@@ -103,7 +103,7 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
     # Dates
     if year == '1992':
         date_debut = '1992-01-02'
-        date_fin   = '1992-12-14'
+        date_fin   = '1993-08-31'
     else:
         date_debut = year+'-01-02'
         date_fin   = year+'-12-14'
@@ -219,9 +219,9 @@ def make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min
             elevation_era5 = 0.
             era5 = False
 
-    return elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd
+    return elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs
 
-def make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd):
+def make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs):
 
     # Plot
     date_station = df_station['date_from'].to_list()
@@ -285,8 +285,8 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
 
     for v in version:
         if rdrs_tt[v]:
-            #tmax_rdrs = ax1.plot(date_rdrs_tt[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
-            tmax_rdrs = ax1.plot(date_rdrs_tt[v], tt_rdrs[v], color[v], label=min_or_max+' RDRS '+v)
+            tmax_rdrs = ax1.plot(date_rdrs_tt[v], (tt_rdrs[v] + lapse_rate_rdrs[v]), color[v], label=min_or_max+' RDRS '+v)
+            #tmax_rdrs = ax1.plot(date_rdrs_tt[v], tt_rdrs[v], color[v], label=min_or_max+' RDRS '+v)
             lns = lns + tmax_rdrs
 
     if era5: 
@@ -473,8 +473,8 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
                     clicked_elev   = clicked_info['ELEV'].to_list()[0]
     
                     # Plot station figure
-                    elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
-                    fig = make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd)
+                    elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+                    fig = make_figure(clicked_name, version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs)
      
                     df_elev = pd.DataFrame(index=['Station','RDRS','ERA5-land'])
                     df_elev['Elevation (m)'] = [clicked_elev, elev_rdrs[version[0]], elevation_era5]
@@ -514,7 +514,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
                         clicked_elev = clicked_elev_list[i]
  
                         # Read data
-                        elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
+                        elev_rdrs, elevation_era5, df_station, station, df_station_sd, df_rdrs, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs = make_timeserie(year, clicked_id, clicked_name, clicked_elev, lapse_type, min_or_max, version, hour_range)
 
                         # Save station data in the full dataframe
                         mask = (df_station['date_from'] >= date_list[0]) & (df_station['date_from'] <= date_list[-1])
@@ -614,7 +614,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
                     df_era5_sd.rename(columns={'average-era5': 'SD', 'date': 'date'}, inplace=True)
                     era5 = True
                     
-                    fig = make_figure('region', version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd)
+                    fig = make_figure('region', version, min_or_max, df_station, station, df_station_sd, df_rdrs_tt, rdrs_tt, df_rdrs_sd, rdrs_sd, df_era5, era5, df_era5_sd, lapse_rate_rdrs)
                     st.write(fig)
 
                     # Metadata
