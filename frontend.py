@@ -274,7 +274,8 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
         'ic420'      : 'tomato',
         'ic421'      : 'orange',
         'ic422'      : 'red',
-        'ic425'      : 'tomato'
+        'ic425'      : 'tomato',
+        'ic426'      : 'teal'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
@@ -378,6 +379,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         version_ic421     = st.checkbox('RDRS vIC421')
         version_ic422     = st.checkbox('RDRS vIC422')
         version_ic425     = st.checkbox('RDRS vIC425')
+        version_ic426     = st.checkbox('RDRS vIC426')
         version_rdps      = st.checkbox('RDPS')
         version_hrdps     = st.checkbox('HRDPS')
 
@@ -412,6 +414,7 @@ if dataset == 'ECCC network' or dataset == 'BC archive' or dataset == 'Wood':
         if version_ic421:     version.append('ic421')
         if version_ic422:     version.append('ic422')
         if version_ic425:     version.append('ic425')
+        if version_ic426:     version.append('ic426')
         if version_01: version.append('v1')
         if version_rdps: version.append('rdps')
         if version_hrdps: version.append('hrdps')
