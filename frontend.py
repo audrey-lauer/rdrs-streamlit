@@ -275,7 +275,7 @@ def make_figure(clicked_name, version, min_or_max, df_station, station, df_stati
         'ic421'      : 'orange',
         'ic422'      : 'red',
         'ic425'      : 'tomato',
-        'ic426'      : 'teal'
+        'ic426'      : 'orange'
     }
 
     fig, ax1 = plt.subplots(figsize=(10,5))
